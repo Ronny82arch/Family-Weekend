@@ -1,0 +1,12 @@
+{
+  "name": "RV FamilyWEEKEND AI 8.2",
+  "description": "Pianificatore intelligente di uscite familiari per il weekend basato sull\u0027età dei figli e la posizione.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone",
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
