@@ -1,5 +1,6 @@
 import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { FamilyPreferences, PlanResult, ChatMessage, AvatarConfig, TimeSlot } from "../types";
+import { searchVerifiedEvents } from "./eventDiscoveryService";
 
 const getLanguageName = (code: string) => {
     switch(code) {
@@ -239,6 +240,15 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
       strategyInstruction = `DAY TRIPS MODE: Pianifica per ${activeDays.join(' e ')}. Sono gite separate con rientro a casa. Se ci sono due giorni attivi, varia le destinazioni. Rispetta rigorosamente le fasce orarie richieste per ogni giorno.`;
   }
 
+  const locName = prefs.manualLocation || "Italia";
+  let verifiedEventHints = "";
+  try {
+      const eventsFound = await searchVerifiedEvents(locName, prefs.selectedDate);
+      if (eventsFound.length > 0) {
+          verifiedEventHints = "EVENTI VERIFICATI IN ZONA: " + eventsFound.map(e => `${e.title} (${e.location})`).join("; ");
+      }
+  } catch(e) {}
+
   const prompt = `
     Sei un Esperto Local Event Scout e Family Travel Agent con Verificatore di Fatti integrato. Scrivi in ${langName}.
     
@@ -248,6 +258,7 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     - ${prefs.adults} Adulti, Bambini: ${childrenDescription}
     - Interessi: ${prefs.interests || "Divertimento per famiglie"}
     - Mood: ${prefs.vibe || "Equilibrato"}
+    - ${verifiedEventHints}
     
     2. PROTOCOLLO ANTI-ALLUCINAZIONE & VERIFICA DATI (CRITICO - ZERO ERRORE):
     - NO ALLUCINAZIONI: È SEVERAMENTE VIETATO inventare nomi di musei, parchi, ristoranti, sagre o eventi non esistenti o chiusi.
