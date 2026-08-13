@@ -319,9 +319,13 @@ const AvatarCreatorModal: React.FC<{
             setCurrentAvatarUrl(compressedUrl);
             saveUpdates(compressedUrl, config, currentName);
 
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert("Errore generazione. Riprova.");
+            if (e.message === 'API_KEY_REQUIRED' || e.message?.includes('API_KEY_REQUIRED') || e.message?.includes('API key')) {
+                alert("⚠️ Chiave API Gemini richiesta. Inserisci la tua API Key nelle Impostazioni (icona menu in alto a destra) per generare l'Avatar 3D con l'IA.");
+            } else {
+                alert("⚠️ Impossibile generare l'avatar in questo momento. Verifica la tua connessione e riprova.");
+            }
         } finally {
             setGenerating(false);
         }

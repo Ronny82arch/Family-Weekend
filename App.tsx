@@ -528,7 +528,7 @@ const App: React.FC = () => {
     setLocationError(null);
     setIsLocating(true);
     if (!navigator.geolocation) {
-      setLocationError("GPS non supportato.");
+      setLocationError("⚠️ GPS non supportato dal browser.");
       setIsLocating(false);
       return;
     }
@@ -537,11 +537,26 @@ const App: React.FC = () => {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
         setPreferences(prev => ({ ...prev, latitude: lat, longitude: lon }));
-        const cityName = await getCityFromCoordinates(lat, lon);
-        setPreferences(prev => ({ ...prev, manualLocation: cityName || `${lat.toFixed(4)}, ${lon.toFixed(4)}` }));
+        let cityName = "";
+        try {
+          cityName = await getCityFromCoordinates(lat, lon);
+        } catch (e) {}
+        setPreferences(prev => ({ 
+          ...prev, 
+          manualLocation: cityName || `Posizione rilevata (${lat.toFixed(3)}, ${lon.toFixed(3)})` 
+        }));
         setIsLocating(false);
       },
-      (err) => { setIsLocating(false); setLocationError("GPS Error."); },
+      (err) => {
+        setIsLocating(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocationError("⚠️ Permesso GPS negato. Attiva la geolocalizzazione nelle impostazioni del browser o telefono.");
+        } else if (err.code === err.TIMEOUT) {
+          setLocationError("⚠️ Tempo scaduto per la ricerca GPS. Inserisci la città manualmente.");
+        } else {
+          setLocationError("⚠️ Impossibile rilevare la posizione GPS.");
+        }
+      },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
