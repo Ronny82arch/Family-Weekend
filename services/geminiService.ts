@@ -54,13 +54,15 @@ const retryWithBackoff = async <T>(fn: () => Promise<T>, retries = 3, delay = 10
 };
 
 export const getApiKey = (): string => {
+  let userKey = '';
   try {
-    const userKey = localStorage.getItem('user_gemini_api_key');
+    userKey = localStorage.getItem('user_gemini_api_key') || '';
     if (userKey && userKey.trim().length > 0) {
       return userKey.trim();
     }
   } catch (e) {}
-  return (process.env.API_KEY || process.env.GEMINI_API_KEY || '').trim();
+  const viteKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.VITE_API_KEY;
+  return (viteKey || process.env.API_KEY || process.env.GEMINI_API_KEY || '').trim();
 };
 
 export const getGenAIClient = (): GoogleGenAI => {
