@@ -240,29 +240,28 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
   }
 
   const prompt = `
-    Sei un Esperto Local Event Scout e Family Travel Agent. Scrivi in ${langName}.
+    Sei un Esperto Local Event Scout e Family Travel Agent con Verificatore di Fatti integrato. Scrivi in ${langName}.
     
     1. IL CLIENTE:
     - ${locationDescription}
-    - DATA VIAGGIO: ${prefs.selectedDate} (Cerca eventi specifici per questo weekend).
+    - DATA VIAGGIO ESATTA: ${prefs.selectedDate} (Verifica tassativamente il calendario per questo specifico weekend).
     - ${prefs.adults} Adulti, Bambini: ${childrenDescription}
     - Interessi: ${prefs.interests || "Divertimento per famiglie"}
     - Mood: ${prefs.vibe || "Equilibrato"}
     
-    2. STRATEGIA DI RICERCA (CRITICO - NO ALLUCINAZIONI):
-    - PRIMA DI TUTTO: Verifica il calendario dell'anno richiesto (${prefs.selectedDate.split('-')[0]}). Calcola quando cadono festività mobili (Carnevale, Pasqua) per quell'anno specifico.
-      * Esempio: Se la data è dopo il Martedì Grasso, NON suggerire sfilate di Carnevale.
-      * Esempio: Se è Domenica, verifica che i negozi/musei siano aperti.
-    - Cerca eventi REALI confermati ESATTAMENTE per il ${prefs.selectedDate}.
-    - RAGGIO MAX: ${prefs.radiusKm} KM dalla partenza.
-    - SE NON TROVI EVENTI SPECIFICI CONFERMATI: Non inventarli. Suggerisci invece attività "Evergreen" (Parchi, Musei, Ville, Laghi, Sentieri Facili) che sono sempre aperti.
-      * In questo caso, scrivi esplicitamente: "Non ci sono grandi eventi confermati per questa data, ma ecco un'ottima alternativa...".
-    - STRATEGIA: ${strategyInstruction}
+    2. PROTOCOLLO ANTI-ALLUCINAZIONE & VERIFICA DATI (CRITICO - ZERO ERRORE):
+    - NO ALLUCINAZIONI: È SEVERAMENTE VIETATO inventare nomi di musei, parchi, ristoranti, sagre o eventi non esistenti o chiusi.
+    - VERIFICA GOOGLE MAPS / SEARCH: Ogni luogo raccomandato DEVE essere un'attività REALE e realmente presente su Google Maps nel raggio di ${prefs.radiusKm} KM.
+    - VERIFICA ORARI E GIORNI DI CHIUSURA: Controlla che le attrazioni consigliate non siano chiuse nel giorno indicato (es. musei chiusi il Lunedì, ristoranti chiusi a pranzo).
+    - MANIFESTAZIONI E SAGRE REALI: Esegui una ricerca su Google Search per verificare se esistono sagre, mostre o eventi REALI e confermati per il weekend del ${prefs.selectedDate}.
+      * Se trovi un evento reale confermato, includilo specificando il nome esatto dell'evento.
+      * Se NON trovi un evento confermato per quel weekend, NON inventarlo! Inserisci invece attrazioni "Evergreen" (parchi naturali, castelli, musei permanenti) che sono sempre aperte e scrivi esplicitamente "(Attività Evergreen verificata)".
+    - STRATEGIA LOGISTICA: ${strategyInstruction}
 
     3. REGOLE DI FORMATTAZIONE (STRICT):
     - Usa Markdown.
     - Titoli attività con "### "
-    - Nomi dei luoghi in "**Grassetto**"
+    - Nomi dei luoghi in "**Grassetto**" (Es: **Parco Sigurtà**)
     - Visual scene sotto i titoli: "VISUAL_SCENE: [Descrizione breve per immagine]"
     - SE UN GIORNO E' IMPOSTATO SU "MATTINA", NON GENERARE ATTIVITA' POMERIDIANE.
     - SE UN GIORNO E' IMPOSTATO SU "POMERIGGIO", NON GENERARE ATTIVITA' MATTUTINE.
