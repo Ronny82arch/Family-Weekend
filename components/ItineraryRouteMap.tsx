@@ -7,6 +7,7 @@ interface Waypoint {
   lat?: number;
   lng?: number;
   visualLine?: string;
+  geoLocation?: string;
 }
 
 interface ItineraryRouteMapProps {
@@ -108,7 +109,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
         }
 
         // Real Activity Waypoint Cascade Queries
-        const pure = extractPureVenue(wp.title) || `Tappa ${i}`;
+        const pure = wp.geoLocation ? wp.geoLocation.replace(/[#*]/g, '').trim() : (extractPureVenue(wp.title) || `Tappa ${i}`);
         const locationName = pure;
 
         const queries = [

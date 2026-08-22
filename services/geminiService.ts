@@ -120,11 +120,11 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     : "Bambini";
 
   const getDayPrompt = (dayName: string, mode: TimeSlot) => {
-      // MODE: REST (NONE)
       if (mode === 'none') {
           return `## ${dayName}
     ### Relax: Giornata di Riposo
     VISUAL_SCENE: Atmosfera rilassante a casa o nel parco vicino
+    GEO_LOCATION: Parco Vicino, Italia
     Giornata libera per ricaricare le energie. Nessuna attivit� di viaggio pianificata.`;
       }
       
@@ -132,80 +132,79 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
       let constraints = "";
       
       const strictNamingRule = `
-      DIVIETO ASSOLUTISSIMO SUI BRACKETS PLACEHOLDER:
-      � SEVERAMENTE VIETATO scrivere "[Titolo Attivit�]", "[Ristorante]" o parole dentro parentesi quadre nei titoli e nei testi.
-      Devi SEMPRE inventare o trovare NOMI REALI E SPECIFICI per ogni luogo ed attivit� (es. "Visita al Castello di Sirmione", "Pranzo alla Trattoria Del Lago", "Passeggiata nel Parco Giardino").
-      OGNI SEZIONE DEVE AVERE ALMENO 2 CORPOSE E DETTAGLIATE FRASI DI DESCRIZIONE (non lasciare mai numeri o righe vuote).
-      `;
+      DIVIETO ASSOLUTO SUI BRACKETS E PLACEHOLDER:
+      NON scrivere mai "[Titolo Attivit�]", "[Ristorante]" o testo tra parentesi quadre.
+      Devi SEMPRE inventare o trovare NOMI REALI E SPECIFICI per ogni luogo ed attivit� (es. "Visita a Villa Borghese", "Pranzo alla Trattoria Da Enzo al 29", "Passeggiata nel Parco Giardino Sigurt�").
+      
+      MANDATORIO PER LE MAPPE (GEOCODIFICA ESATTA):
+      Inserisci SEMPRE la riga "GEO_LOCATION: [Nome Reale Luogo/Indirizzo, Citt�]" subito sotto VISUAL_SCENE per ogni attivit�.
+      Esempio:
+      ### Mattina: Visita a Villa Borghese
+      VISUAL_SCENE: Giardini monumentali e fontane
+      GEO_LOCATION: Villa Borghese, Roma
+      Esplorazione dei viali fioriti del parco con la famiglia...
+`;
 
-      // MODE: FULL DAY
       if (mode === 'full_day') {
           constraints = `
             ${strictNamingRule}
             LOGISTICA: La famiglia parte la mattina e rientra dopo cena.
-            STRUTTURA OBBLIGATORIA (usa esattamente questi titoli con nomi reali al posto dei placeholder):
-            1. ### Mattina: [Inserisci Nome Reale Attivit� Mattutina]
-            2. ### ??? Pranzo: [Inserisci Nome Reale Ristorante o Trattoria]
-            3. ### Pomeriggio: [Inserisci Nome Reale Attivit� Pomeridiana]
+            STRUTTURA OBBLIGATORIA (usa esattamente questi titoli con nomi reali):
+            1. ### Mattina: [Nome Reale Attivit� Mattutina]
+            2. ### ??? Pranzo: [Nome Reale Ristorante o Trattoria]
+            3. ### Pomeriggio: [Nome Reale Attivit� Pomeridiana]
           `;
           schedule = `
-    ### Mattina: Visita Guidata al Castello ed al Borgo Antico
-    VISUAL_SCENE: Un fantastico castello medievale con torri e vista panoramica
-    Passeggiata emozionante tra le antiche mura con racconti storici per bambini, giochi all'aperto e visita panoramica della fortezza.
+    ### Mattina: Visita Guidata a Villa Borghese ed ai Giardini
+    VISUAL_SCENE: Giardini monumentali fioriti con fontane e percorsi panoramici
+    GEO_LOCATION: Villa Borghese, Roma
+    Passeggiata tra i viali alberati con percorsi per bambini, noleggio risci� e visita ai giardini segreti.
     
-    ### ??? Pranzo: Trattoria Tipica La Sosta
-    VISUAL_SCENE: Un'accogliente trattoria con tavoli all'aperto e piatti tipici della tradizione
-    Pranzo rilassante con piatti locali fatti in casa, menu speciale dedicato ai pi� piccoli e deliziosi dolci artigianali.
+    ### ??? Pranzo: Trattoria Da Enzo al 29
+    VISUAL_SCENE: Pasta fresca tradizionale servita in un'accogliente trattoria tipica
+    GEO_LOCATION: Via dei Vascellari, Roma
+    Pranzo rilassante con piatti tipici della tradizione, menu speciale dedicato ai bimbi e dolci artigianali.
 
-    ### Pomeriggio: Parco Avventura e Laboratori nella Natura
-    VISUAL_SCENE: Bambini entusiasti sui percorsi avventura tra gli alberi
-    Pomeriggio pieno di divertimento con percorsi sospesi in sicurezza sui grandi alberi del parco e laboratori didattici per tutta la famiglia.`;
-      } 
-      
-      // MODE: MORNING ONLY
-      else if (mode === 'morning') {
+    ### Pomeriggio: Explora il Museo dei Bambini
+    VISUAL_SCENE: Padiglione interattivo con esperimenti e giochi scientifici
+    GEO_LOCATION: Via Flaminia, Roma
+    Pomeriggio di puro divertimento tra installazioni interattive, giochi d'acqua e laboratori pratici.`;
+      } else if (mode === 'morning') {
           constraints = `
             ${strictNamingRule}
             ? DIVIETI ASSOLUTI: NON generare sezioni "Pomeriggio" o "Cena".
             LOGISTICA: La famiglia parte la mattina e RIENTRA A CASA subito dopo pranzo.
-            STRUTTURA OBBLIGATORIA:
-            1. ### Mattina: [Nome Reale Attivit�]
-            2. ### ??? Pranzo: [Nome Reale Ristorante]
-            3. STOP. (Non scrivere altro dopo il pranzo).
           `;
           schedule = `
-    ### Mattina: Passeggiata nel Parco Naturale ed al Lago
-    VISUAL_SCENE: Un bellissimo parco fiorito con specchi d'acqua e cigni
-    Passeggiata rilassante lungo i sentieri del parco con aree gioco e sosta per osservare gli animali e la natura.
+    ### Mattina: Passeggiata al Parco del Fiume Sile
+    VISUAL_SCENE: Sentieri immersi nella natura lungo il fiume fiorito
+    GEO_LOCATION: Parco del Sile, Treviso
+    Passeggiata rilassante lungo i sentieri del parco naturale con aree gioco e sosta.
     
     ### ??? Pranzo: Ristorante Il Vigneto
     VISUAL_SCENE: Piatto di pasta fresca in un giardino panoramico
-    Pranzo di qualit� con prodotti a km zero ed uno spazio giochi sicuro dove i bambini possono giocare liberamente.`;
-      } 
-      
-      // MODE: AFTERNOON ONLY
-      else if (mode === 'afternoon') {
+    GEO_LOCATION: Via Sant'Angelo, Treviso
+    Pranzo di qualit� con prodotti a km zero ed uno spazio giochi sicuro per le famiglie.`;
+      } else if (mode === 'afternoon') {
           constraints = `
             ${strictNamingRule}
             ? DIVIETI ASSOLUTI: NON generare sezioni "Mattina".
-            LOGISTICA: La famiglia parte da casa direttamente per pranzo. La mattina � a casa.
-            STRUTTURA OBBLIGATORIA:
-            1. ### ??? Pranzo: [Nome Reale Ristorante]
-            2. ### Pomeriggio: [Nome Reale Attivit�]
-            3. ### ??? Cena: [Nome Reale Pizzeria]
           `;
           schedule = `
     ### ??? Pranzo: Osteria Del Borgo
-    VISUAL_SCENE: Tavolo in piazza con specialit� locali e atmosfera festosa
+    VISUAL_SCENE: Tavolo in piazza con specialit� locali
+    GEO_LOCATION: Piazza dei Signori, Treviso
     Pranzo di benvenuto con prodotti tipici e menu bimbi appositamente studiato.
 
-    ### Pomeriggio: Visita al Museo delle Curiosit� ed Aree Gioco
-    VISUAL_SCENE: Interno di un museo interattivo con installazioni per ragazzi
-    Pomeriggio stimolante tra invenzioni, esperimenti scientifici pratici ed installazioni d d'arte interattive.
+    ### Pomeriggio: Visita al Castello Scaligero
+    VISUAL_SCENE: Maestosa fortezza sulle rive del lago
+    GEO_LOCATION: Castello Scaligero, Sirmione
+    Pomeriggio stimolante tra torri panoramiche e racconti storici affascinanti per tutta la famiglia.
     
     ### ??? Cena: Pizzeria Gourmet La Torre
-    VISUAL_SCENE: Fragrante pizza cotta nel forno a legna in un ambiente vivace
-    Cena conviviale in pizzeria con ingredienti selezionati e dolci fatti in casa per concludere in bellezza.`;
+    VISUAL_SCENE: Fragrante pizza cotta nel forno a legna
+    GEO_LOCATION: Piazza Castello, Sirmione
+    Cena conviviale in pizzeria per concludere la giornata in bellezza.`;
       }
 
       return `## ${dayName}
@@ -214,35 +213,30 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
 
     ### ?? Navigazione ${dayName}
     VISUAL_SCENE: Mappa stradale
-    - **Tappa 1**: Indicazioni stradali per raggiungere la prima destinazione
-    - **Tappa 2**: Spostamento verso il pranzo (durata sotto i 15 minuti)
-    - **Tappa 3**: Rientro o proseguimento pomeridiano
+    GEO_LOCATION: Centro Citt�, Italia
+    - **Tappa 1**: Indicazioni stradali per la prima destinazione
+    - **Tappa 2**: Spostamento verso il pranzo
+    - **Tappa 3**: Pomeriggio e rientro
 
     ## ${terms.mission} ${dayName}
-    MANDATORIO: Inserisci sempre ALMENO 3 missioni di gioco specifiche per i luoghi visitati.
-    Formato: "* **[Titolo Missione]**: [Descrizione obiettivo divertente]. (??? Sicurezza: [Consiglio pratico])"
-    Ogni missione deve stare su una riga separata che inizia con un asterisco.
+    * **Cacciatori di Dettagli**: Trova 3 elementi segreti nascosti nel parco. (??? Sicurezza: Tenere sempre i bambini per mano)
 
     ## ${terms.story} ${dayName}
-    Favola della buonanotte legata alle avventure vissute oggi per addormentarsi con un sorriso.
+    Favola della buonanotte sulle avventure vissute oggi per addormentarsi felicemente.
 
     ## ${terms.budget} ${dayName}
-    Fornisci un elenco puntato DETTAGLIATO:
     - ??? **Ristorazione**: Stima �35-50
-    - ??? **Ingressi/Attivit�**: Costo �15-25
+    - ??? **Ingressi**: Costo �15-25
     - ?? **Trasporto**: Stima carburante �10
-    - ??? **Extra**: Varie ed eventuali �10
     **TOTALE STIMATO PER ${dayName.toUpperCase()}: �80-95**
 
     ## ${terms.transport} ${dayName}
     Consigli pratici su parcheggi gratuiti o custoditi vicini ai luoghi visitati.
 
     ## ${terms.pack} ${dayName}
-    MANDATORIO: Usa un elenco puntato dove OGNI riga corrisponde a un singolo oggetto specifico utile per oggi:
     - Scarpe da ginnastica comode
     - Borraccia termica d'acqua
-    - Cappellino per il sole
-    - Snack salutari per la merenda`;
+    - Cappellino per il sole`;
   };
 
   const activeDays = [];

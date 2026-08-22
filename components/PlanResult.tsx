@@ -712,9 +712,11 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
             const lines = p.trim().split('\n');
             const rawTitle = lines[0].trim();
             const visualLine = lines.find(l => l.includes('VISUAL_SCENE:'));
-            const content = lines.filter(l => !l.includes('VISUAL_SCENE:') && l !== rawTitle && l.trim().length > 0).join('\n');
+            const geoLine = lines.find(l => l.includes('GEO_LOCATION:'));
+            const content = lines.filter(l => !l.includes('VISUAL_SCENE:') && !l.includes('GEO_LOCATION:') && l !== rawTitle && l.trim().length > 0).join('\n');
             const displayTitle = rawTitle.replace(/:$/, '');
-            return { title: displayTitle, content, visualLine };
+            const geoLocation = geoLine ? geoLine.replace(/GEO_LOCATION:/i, '').trim() : undefined;
+            return { title: displayTitle, content, visualLine, geoLocation };
         })
         .filter(a => a.title.length < 100 && !a.title.toUpperCase().includes("DATA_MARKER")); 
     }
@@ -1021,7 +1023,8 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
                           <ItineraryRouteMap
                             waypoints={day.activities.map(a => ({
                               title: a.title,
-                              visualLine: a.visualLine
+                              visualLine: a.visualLine,
+                              geoLocation: a.geoLocation
                             }))}
                             familyAvatarUrl={preferences?.children?.[0]?.avatarUrl || preferences?.adultsData?.[0]?.avatarUrl}
                             dayTitle={`Mappa Percorso - ${day.title}`}
