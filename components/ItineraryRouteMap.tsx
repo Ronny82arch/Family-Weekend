@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Navigation, MapPin, Compass, Sparkles, ExternalLink } from 'lucide-react';
+import { Navigation, MapPin, Compass, Sparkles, Home, ExternalLink } from 'lucide-react';
 
 interface Waypoint {
   title: string;
@@ -22,12 +22,14 @@ const DEFAULT_CENTER: [number, number] = [41.9028, 12.4964]; // Roma
 
 const geocodeCache: Record<string, [number, number]> = {};
 
-const cleanLocationTitle = (raw: string): string => {
+const extractPureVenue = (raw: string): string => {
   if (!raw) return '';
   let text = raw.replace(/###/g, '').replace(/\*\*/g, '').replace(/^\s*\d+[\.\)]\s*/, '').trim();
   text = text.replace(/^[^a-zA-Z0-9\u00C0-\u024F]+/u, '').trim();
   text = text.replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera|Navigazione|Relax|Morning|Afternoon|Lunch|Dinner)[:\s-]*/i, '').trim();
   text = text.replace(/^[^a-zA-Z0-9\u00C0-\u024F]+/u, '').trim();
+  text = text.replace(/^(Visita|Visita guidata|Passeggiata|Sosta|Tappa|Giro|Tour|Andiamo|Escursione|Pranzo|Cena|Colazione|Pausa|Relax|Visit|Walk|Explore|Discover)\s+(al|alla|allo|agli|alle|ai|a|nel|nella|nello|negli|nelle|nei|in|presso|di|del|della|dello|degli|delle|dei|at|to|the)\s+/i, '').trim();
+  text = text.replace(/\s+(con|ed|e)\s+.*$/i, '').trim();
   return text;
 };
 
@@ -44,64 +46,97 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
   const markersGroupRef = useRef<any>(null);
   const polylineRef = useRef<any>(null);
 
-  const [resolvedCoords, setResolvedCoords] = useState<{ wp: Waypoint; lat: number; lng: number; locationName: string }[]>([]);
+  const [resolvedCoords, setResolvedCoords] = useState<{ wp: Waypoint; lat: number; lng: number; locationName: string; isHome?: boolean }[]>([]);
 
-  // Filter valid activity waypoints (exclude routine navigation headers)
+  // 1. Build waypoints array starting with Tappa 0 (Partenza da Casa)
   const activeWaypoints = useMemo(() => {
-    return waypoints.filter(wp => {
+    const homeWp: Waypoint = {
+      title: `Partenza da Casa (${baseCity})`,
+      timeSlot: 'Partenza'
+    };
+
+    const cleanActivities = waypoints.filter(wp => {
       const t = wp.title.toLowerCase();
       return !t.includes('navigazione') && !t.includes('navigation') && !t.includes('giornata di riposo');
     });
-  }, [waypoints]);
 
+    return [homeWp, ...cleanActivities];
+  }, [waypoints, baseCity]);
+
+  // 2. Multi-tier Geocoding including Home Origin
   useEffect(() => {
     let isMounted = true;
 
     const resolveAll = async () => {
-      const results: { wp: Waypoint; lat: number; lng: number; locationName: string }[] = [];
+      const results: { wp: Waypoint; lat: number; lng: number; locationName: string; isHome?: boolean }[] = [];
 
       for (let i = 0; i < activeWaypoints.length; i++) {
         const wp = activeWaypoints[i];
-        const locationName = cleanLocationTitle(wp.title) || `Tappa ${i + 1}`;
+        const isHome = i === 0;
 
-        if (wp.lat && wp.lng && !isNaN(wp.lat) && !isNaN(wp.lng)) {
-          results.push({ wp, lat: wp.lat, lng: wp.lng, locationName });
+        if (isHome) {
+          const homeQuery = `${baseCity}, Italia`;
+          let homePoint: [number, number] = DEFAULT_CENTER;
+
+          if (geocodeCache[homeQuery]) {
+            homePoint = geocodeCache[homeQuery];
+          } else {
+            try {
+              const controller = new AbortController();
+              const timer = setTimeout(() => controller.abort(), 2000);
+              const res = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(homeQuery)}&format=json&limit=1`,
+                { signal: controller.signal, headers: { 'User-Agent': 'FamilyWeekendApp/1.0' } }
+              );
+              clearTimeout(timer);
+              if (res.ok) {
+                const json = await res.json();
+                if (json && json[0] && json[0].lat && json[0].lon) {
+                  homePoint = [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+                  geocodeCache[homeQuery] = homePoint;
+                }
+              }
+            } catch (e) {}
+          }
+
+          results.push({ wp, lat: homePoint[0], lng: homePoint[1], locationName: `Partenza: ${baseCity}`, isHome: true });
           continue;
         }
 
-        const query1 = `${locationName}, ${baseCity}`;
-        const query2 = `${baseCity}, Italia`;
+        // Real Activity Waypoints
+        const pureVenue = extractPureVenue(wp.title) || `Tappa ${i}`;
+        const locationName = pureVenue;
 
-        if (geocodeCache[query1]) {
-          const [lat, lng] = geocodeCache[query1];
-          results.push({ wp, lat, lng, locationName });
-          continue;
-        }
+        const query1 = `${pureVenue}, ${baseCity}`;
+        const query2 = `${pureVenue}, Italia`;
+        const query3 = `${baseCity}, Italia`;
 
         let foundPoint: [number, number] | null = null;
 
-        // Tier 1: Try specific place + city
-        try {
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 2000);
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query1)}&format=json&limit=1`,
-            { signal: controller.signal, headers: { 'User-Agent': 'FamilyWeekendApp/1.0' } }
-          );
-          clearTimeout(timer);
-          if (res.ok) {
-            const json = await res.json();
-            if (json && json[0] && json[0].lat && json[0].lon) {
-              foundPoint = [parseFloat(json[0].lat), parseFloat(json[0].lon)];
-              geocodeCache[query1] = foundPoint;
-            }
-          }
-        } catch (e) {}
+        if (geocodeCache[query1]) foundPoint = geocodeCache[query1];
 
-        // Tier 2: Try city center if specific place failed
-        if (!foundPoint && geocodeCache[query2]) {
-          foundPoint = geocodeCache[query2];
-        } else if (!foundPoint) {
+        // Tier 1: Pure Venue + City
+        if (!foundPoint) {
+          try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 2000);
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query1)}&format=json&limit=1`,
+              { signal: controller.signal, headers: { 'User-Agent': 'FamilyWeekendApp/1.0' } }
+            );
+            clearTimeout(timer);
+            if (res.ok) {
+              const json = await res.json();
+              if (json && json[0] && json[0].lat && json[0].lon) {
+                foundPoint = [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+                geocodeCache[query1] = foundPoint;
+              }
+            }
+          } catch (e) {}
+        }
+
+        // Tier 2: Pure Venue in Italia
+        if (!foundPoint) {
           try {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), 2000);
@@ -120,15 +155,15 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
           } catch (e) {}
         }
 
-        // Tier 3: Apply spatial distribution offset around base center
-        const baseCenter = foundPoint || DEFAULT_CENTER;
-        const angle = (i * (360 / Math.max(activeWaypoints.length, 1)) * Math.PI) / 180;
-        const radius = 0.012 * (i + 1);
+        // Tier 3: Spatial Distribution around City Center
+        const baseCenter = foundPoint || geocodeCache[query3] || DEFAULT_CENTER;
+        const angle = ((i - 1) * (360 / Math.max(activeWaypoints.length - 1, 1)) * Math.PI) / 180;
+        const radius = 0.015 * i;
 
-        const lat = baseCenter[0] + Math.sin(angle) * radius;
-        const lng = baseCenter[1] + Math.cos(angle) * radius;
+        const lat = foundPoint ? foundPoint[0] : baseCenter[0] + Math.sin(angle) * radius;
+        const lng = foundPoint ? foundPoint[1] : baseCenter[1] + Math.cos(angle) * radius;
 
-        results.push({ wp, lat, lng, locationName });
+        results.push({ wp, lat, lng, locationName, isHome: false });
       }
 
       if (isMounted) {
@@ -183,7 +218,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     };
   }, []);
 
-  // Update markers, polyline and bounds
+  // Render polyline from Home through all activities
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !map._container || resolvedCoords.length === 0 || typeof (window as any).L === 'undefined') return;
@@ -198,12 +233,13 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
       const points: [number, number][] = resolvedCoords.map(c => [c.lat, c.lng]);
       const bounds = L.latLngBounds(points);
 
+      // Route line connecting Home (Tappa 0) -> Tappa 1 -> Tappa 2 -> Tappa 3
       if (points.length > 1) {
         polylineRef.current = L.polyline(points, {
           color: '#4f46e5',
-          weight: 5,
+          weight: 6,
           opacity: 0.9,
-          dashArray: '8, 8',
+          dashArray: '10, 10',
           lineCap: 'round'
         }).addTo(map);
       }
@@ -213,20 +249,26 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
         const avatarSrc = familyAvatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=family';
 
         let categoryEmoji = '\u{1F4CD}';
-        const tLower = c.locationName.toLowerCase();
-        if (tLower.match(/pranzo|cena|ristorante|trattoria|osteria|pizzeria/)) categoryEmoji = '\u{1F37D}';
-        else if (tLower.match(/parco|bosco|giardino|natura|oasi|fiume|lago/)) categoryEmoji = '\u{1F333}';
-        else if (tLower.match(/castello|rocca|palazzo|museo|mostra/)) categoryEmoji = '\u{1F3F0}';
+        if (c.isHome) {
+          categoryEmoji = '\u{1F3E0}'; // House
+        } else {
+          const tLower = c.locationName.toLowerCase();
+          if (tLower.match(/pranzo|cena|ristorante|trattoria|osteria|pizzeria/)) categoryEmoji = '\u{1F37D}';
+          else if (tLower.match(/parco|bosco|giardino|natura|oasi|fiume|lago/)) categoryEmoji = '\u{1F333}';
+          else if (tLower.match(/castello|rocca|palazzo|museo|mostra/)) categoryEmoji = '\u{1F3F0}';
+        }
+
+        const badgeLabel = c.isHome ? 'Partenza ??' : `Tappa ${idx}`;
 
         const iconHtml = `
           <div class="relative group cursor-pointer transition-all duration-300 ${isSelected ? 'scale-125 z-50' : 'hover:scale-110 z-10'}">
-            <div class="w-12 h-12 rounded-full border-4 ${isSelected ? 'border-indigo-600 bg-indigo-600 shadow-2xl ring-4 ring-indigo-300' : 'border-white bg-slate-900 shadow-xl'} flex items-center justify-center overflow-hidden relative">
+            <div class="w-12 h-12 rounded-full border-4 ${c.isHome ? 'border-amber-500 bg-amber-500 shadow-2xl ring-4 ring-amber-300' : isSelected ? 'border-indigo-600 bg-indigo-600 shadow-2xl ring-4 ring-indigo-300' : 'border-white bg-slate-900 shadow-xl'} flex items-center justify-center overflow-hidden relative">
               <img src="${avatarSrc}" class="w-full h-full object-cover" />
-              <div class="absolute -bottom-0.5 -right-0.5 bg-amber-400 text-slate-900 font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow">
-                ${idx + 1}
+              <div class="absolute -bottom-0.5 -right-0.5 ${c.isHome ? 'bg-indigo-900 text-white' : 'bg-amber-400 text-slate-900'} font-black text-[9px] px-1.5 py-0.5 rounded-full border border-white shadow">
+                ${idx === 0 ? '0' : idx}
               </div>
             </div>
-            <div class="mt-1 px-2.5 py-1 bg-slate-900/95 text-white text-[10px] font-bold rounded-lg shadow-md whitespace-nowrap text-center max-w-[140px] truncate border border-white/20 flex items-center gap-1">
+            <div class="mt-1 px-2.5 py-1 bg-slate-900/95 text-white text-[10px] font-bold rounded-lg shadow-md whitespace-nowrap text-center max-w-[150px] truncate border border-white/20 flex items-center gap-1">
               <span>${categoryEmoji}</span>
               <span class="truncate">${c.locationName}</span>
             </div>
@@ -242,11 +284,11 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
         const marker = L.marker([c.lat, c.lng], { icon: customIcon }).addTo(markersGroupRef.current);
 
-        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.locationName + ', ' + baseCity)}`;
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.locationName)}`;
 
         const popupContent = `
           <div class="p-3 text-center">
-            <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest block">Tappa ${idx + 1}</span>
+            <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest block">${badgeLabel}</span>
             <h4 class="font-bold text-slate-900 text-sm mt-1 mb-2">${c.locationName}</h4>
             <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="inline-block px-3 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full shadow hover:bg-indigo-700 transition-colors">
               Apri in Google Maps ?
@@ -274,7 +316,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     } catch (e) {
       console.error("Error setting map markers:", e);
     }
-  }, [resolvedCoords, selectedIndex, familyAvatarUrl, baseCity, onSelectWaypoint]);
+  }, [resolvedCoords, selectedIndex, familyAvatarUrl, onSelectWaypoint]);
 
   useEffect(() => {
     if (!mapInstanceRef.current || !resolvedCoords[selectedIndex]) return;
@@ -283,8 +325,8 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
   }, [selectedIndex, resolvedCoords]);
 
   return (
-    <div className="relative w-full h-[340px] sm:h-[380px] rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-2xl bg-slate-900 mb-8 group">
-      <div ref={mapRef} className="w-full h-full min-h-[340px] z-0" />
+    <div className="relative w-full h-[350px] sm:h-[400px] rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-2xl bg-slate-900 mb-8 group">
+      <div ref={mapRef} className="w-full h-full min-h-[350px] z-0" />
 
       <div className="absolute top-4 left-4 z-10 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 pointer-events-auto">
         <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-md">
@@ -294,7 +336,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
           <h4 className="font-black text-slate-900 text-xs leading-none uppercase tracking-wider">{dayTitle}</h4>
           <p className="text-[10px] font-bold text-indigo-600 mt-1 flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-indigo-500" />
-            <span>{activeWaypoints.length} Tappe Reali Mappate</span>
+            <span>Tragitto da Casa ?? alle Tappe Reali ({activeWaypoints.length - 1} Tappe)</span>
           </p>
         </div>
       </div>
@@ -311,12 +353,12 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
             }`}
           >
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black ${
-              idx === selectedIndex ? 'bg-white text-indigo-600' : 'bg-slate-200 text-slate-700'
+              idx === 0 ? 'bg-amber-400 text-slate-900' : idx === selectedIndex ? 'bg-white text-indigo-600' : 'bg-slate-200 text-slate-700'
             }`}>
-              {idx + 1}
+              {idx === 0 ? '??' : idx}
             </span>
             <span className="truncate max-w-[140px]">
-              {cleanLocationTitle(wp.title) || `Tappa ${idx + 1}`}
+              {idx === 0 ? `Casa (${baseCity})` : (extractPureVenue(wp.title) || `Tappa ${idx}`)}
             </span>
           </button>
         ))}
