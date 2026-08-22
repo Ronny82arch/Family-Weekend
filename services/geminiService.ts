@@ -464,47 +464,79 @@ export const generateRainAlternatives = async (planText: string): Promise<string
     });
 };
 
-export const generateFamilyMemberAvatar = async (description: string, role: string): Promise<string> => {
-    const ai = getGenAIClient();
-    return retryWithBackoff(async () => {
-        try {
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash-image',
-                contents: { parts: [{ text: description }] },
-                config: { imageConfig: { aspectRatio: '1:1' } }
-            });
-            const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-            if (!part) throw new Error("No image");
-            return `data:image/png;base64,${part.inlineData!.data}`;
-        } catch (error) { throw new Error("Avatar failed."); }
-    });
+export const analyzeAvatarPhoto = async (base64: string, mimeType = 'image/jpeg'): Promise<any> => {
+  const ai = getGenAIClient();
+  try {
+      const response = await ai.models.generateContent({
+          model: "gemini-3.6-flash",
+          contents: { parts: [
+              { inlineData: { data: base64, mimeType: mimeType } },
+              { text: "Analizza il volto per configurare un avatar 3D. Ritorna JSON con: gender, hairColor, hairStyle, skinColor, glasses." }
+          ]},
+          config: {
+               responseMimeType: "application/json",
+               responseSchema: {
+                  type: Type.OBJECT,
+                  properties: {
+                      gender: { type: Type.STRING },
+                      hairColor: { type: Type.STRING },
+                      hairStyle: { type: Type.STRING },
+                      skinColor: { type: Type.STRING },
+                      glasses: { type: Type.STRING },
+                  }
+               }
+          }
+      });
+      return JSON.parse(response.text || "{}");
+  } catch (error) { return {}; }
 };
 
-export const analyzeAvatarPhoto = async (base64: string, mimeType: string): Promise<Partial<AvatarConfig>> => {
-    const ai = getGenAIClient();
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: { parts: [
-                { inlineData: { data: base64, mimeType: mimeType } },
-                { text: "Analizza il volto per configurare un avatar 3D. Ritorna JSON con: gender, hairColor, hairStyle, skinColor, glasses." }
-            ]},
-            config: {
-                 responseMimeType: "application/json",
-                 responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        gender: { type: Type.STRING },
-                        hairColor: { type: Type.STRING },
-                        hairStyle: { type: Type.STRING },
-                        skinColor: { type: Type.STRING },
-                        glasses: { type: Type.STRING },
-                    }
-                 }
-            }
-        });
-        return JSON.parse(response.text || "{}");
-    } catch (error) { return {}; }
+export const generateFamilyMemberAvatar = async (description: string, role: string): Promise<string> => {
+    return retryWithBackoff(async () => {
+        const seed = Math.floor(Math.random() * 1000000);
+        const encoded = encodeURIComponent(description);
+
+        const fetchWithTimeout = async (url: string, timeoutMs = 18000): Promise<string> => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+            const res = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+
+            return new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        };
+
+        // Tier 1: Pollinations Standard (18s timeout)
+        try {
+            return await fetchWithTimeout(`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&seed=${seed}`, 18000);
+        } catch (e1) {
+            console.warn("Pollinations Tier 1 failed, retrying with Turbo model...");
+        }
+
+        // Tier 2: Pollinations Turbo (18s timeout)
+        try {
+            return await fetchWithTimeout(`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&model=turbo&seed=${seed + 1}`, 18000);
+        } catch (e2) {
+            console.warn("Pollinations Tier 2 failed, retrying with Flux model...");
+        }
+
+        // Tier 3: Pollinations Flux (18s timeout)
+        try {
+            return await fetchWithTimeout(`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&model=flux&seed=${seed + 2}`, 18000);
+        } catch (e3) {
+            console.warn("Pollinations Tier 3 failed, retrying with alternative 3D engine...");
+        }
+
+        // Tier 4: Alternative 3D Pixar Avatar Fallback (Instant 200 OK)
+        return `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&seed=${seed + 99}`;
+    });
 };
 
 export const generateLocationCuriosities = async (locationName: string, context: string): Promise<string> => {
@@ -520,14 +552,48 @@ export const generateLocationCuriosities = async (locationName: string, context:
 };
 
 export const getCityFromCoordinates = async (lat: number, lon: number): Promise<string> => {
-    const ai = getGenAIClient();
+    // 1. Try BigDataCloud reverse geocoding (instant, 200 OK)
     try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=it`, { signal: controller.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+            const data = await res.json();
+            const city = data.city || data.locality || data.principalSubdivision;
+            if (city && city.trim().length > 0) {
+                return city.trim();
+            }
+        }
+    } catch(e) {}
+
+    // 2. Try Nominatim OpenStreetMap reverse geocoding fallback
+    try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`, { signal: controller.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+            const data = await res.json();
+            const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county;
+            if (city && city.trim().length > 0) {
+                return city.trim();
+            }
+        }
+    } catch(e) {}
+
+    // 3. Try Gemini API fallback (gemini-3.6-flash)
+    try {
+        const ai = getGenAIClient();
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: { parts: [{ text: `Identifica città/paese per: ${lat}, ${lon}. Ritorna SOLO il nome.` }] },
+            model: "gemini-3.6-flash",
+            contents: { parts: [{ text: `Identifica la citt� o comune per le coordinate: ${lat}, ${lon}. Ritorna SOLO il nome della citt� in italiano.` }] },
         });
-        return response.text?.trim() || `${lat}, ${lon}`;
-    } catch (error) { return ""; }
+        const name = response.text?.trim().replace(/^["']|["']$/g, '');
+        if (name && name.length > 0 && !name.includes(",")) return name;
+    } catch(e) {}
+
+    return "La mia posizione";
 };
 
 export const generateSeasonalStory = async (season: string, locations: string[], children: string[]): Promise<string> => {

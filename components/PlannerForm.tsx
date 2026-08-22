@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Users, Navigation, Heart, Crosshair, Plus, Trash2, User, Loader2, CalendarDays, Sun, Sunrise, Sunset, Ban, Minus, Settings2, Target, BedDouble, Calendar, Sparkles, AlertCircle, Check, Smile, X, Edit2, Wand2, Shirt, Palette, Glasses, Laugh, Camera, RefreshCw, Upload, ScanFace, Scissors, ZoomIn, ZoomOut, Move, RotateCcw, HardHat, Crown, Zap } from 'lucide-react';
 import { FamilyPreferences, Child, TimeSlot, AdultData, AvatarConfig } from '../types';
@@ -7,54 +6,97 @@ import { generateFamilyMemberAvatar, analyzeAvatarPhoto } from '../services/gemi
 // --- LOCALIZATION DICTIONARY FOR AVATAR ---
 const AVATAR_LABELS: any = {
     it: {
-        male: 'Lui', female: 'Lei', short: 'Corti', long: 'Lunghi', bald: 'Rasati', spiky: 'Sparati', bun: 'Chignon', braids: 'Treccine',
-        straight: 'Lisci', wavy: 'Mossi', curly: 'Ricci', afro: 'Afro', blonde: 'Biondi', brown: 'Castani', black: 'Neri', red: 'Rossi', gray: 'Grigi', pink: 'Rosa', white: 'Bianchi',
-        light: 'Chiara', medium: 'Media', dark: 'Scura', pale: 'Pallida', blue: 'Blu', green: 'Verdi', none: 'No', round: 'Tondi', sunglasses: 'Sole', square: 'Smart',
-        cap: 'Berretto', beanie: 'Lana', hat: 'Cappello', crown: 'Corona', tshirt: 'T-Shirt', hoodie: 'Felpa', dress: 'Elegante', shirt: 'Camicia', jacket: 'Giacca',
-        orange: 'Arancio', yellow: 'Giallo', purple: 'Viola', outfit: 'Outfit', face: 'Viso & Accessori', hair: 'Capelli'
-    },
-    en: {
-        male: 'He', female: 'She', short: 'Short', long: 'Long', bald: 'Bald', spiky: 'Spiky', bun: 'Bun', braids: 'Braids',
-        straight: 'Straight', wavy: 'Wavy', curly: 'Curly', afro: 'Afro', blonde: 'Blonde', brown: 'Brown', black: 'Black', red: 'Red', gray: 'Gray', pink: 'Pink', white: 'White',
-        light: 'Light', medium: 'Medium', dark: 'Dark', pale: 'Pale', blue: 'Blue', green: 'Green', none: 'None', round: 'Round', sunglasses: 'Sun', square: 'Smart',
-        cap: 'Cap', beanie: 'Beanie', hat: 'Hat', crown: 'Crown', tshirt: 'T-Shirt', hoodie: 'Hoodie', dress: 'Dress', shirt: 'Shirt', jacket: 'Jacket',
-        orange: 'Orange', yellow: 'Yellow', purple: 'Purple', outfit: 'Outfit', face: 'Face & Accessories', hair: 'Hair'
-    },
-    es: {
-        male: 'Él', female: 'Ella', short: 'Corto', long: 'Largo', bald: 'Calvo', spiky: 'Punta', bun: 'Moño', braids: 'Trenzas',
-        straight: 'Liso', wavy: 'Ondulado', curly: 'Rizado', afro: 'Afro', blonde: 'Rubio', brown: 'Castaño', black: 'Negro', red: 'Rojo', gray: 'Gris', pink: 'Rosa', white: 'Blanco',
-        light: 'Clara', medium: 'Media', dark: 'Oscura', pale: 'Pálida', blue: 'Azul', green: 'Verde', none: 'Nada', round: 'Redondas', sunglasses: 'Sol', square: 'Smart',
-        cap: 'Gorra', beanie: 'Lana', hat: 'Sombrero', crown: 'Corona', tshirt: 'Camiseta', hoodie: 'Sudadera', dress: 'Vestido', shirt: 'Camisa', jacket: 'Chaqueta',
-        orange: 'Naranja', yellow: 'Amarillo', purple: 'Morado', outfit: 'Atuendo', face: 'Cara y Accesorios', hair: 'Cabello'
-    },
-    de: {
-        male: 'Er', female: 'Sie', short: 'Kurz', long: 'Lang', bald: 'Glatze', spiky: 'Igel', bun: 'Dutt', braids: 'Zöpfe',
-        straight: 'Glatt', wavy: 'Wellig', curly: 'Lockig', afro: 'Afro', blonde: 'Blond', brown: 'Braun', black: 'Schwarz', red: 'Rot', gray: 'Grau', pink: 'Rosa', white: 'Weiß',
-        light: 'Hell', medium: 'Mittel', dark: 'Dunkel', pale: 'Blass', blue: 'Blau', green: 'Grün', none: 'Keine', round: 'Rund', sunglasses: 'Sonne', square: 'Smart',
-        cap: 'Kappe', beanie: 'Mütze', hat: 'Hut', crown: 'Krone', tshirt: 'T-Shirt', hoodie: 'Hoodie', dress: 'Kleid', shirt: 'Hemd', jacket: 'Jacke',
-        orange: 'Orange', yellow: 'Gelb', purple: 'Lila', outfit: 'Outfit', face: 'Gesicht & Zubehör', hair: 'Haare'
+        ageGroup: 'Fascia di Et�', faceShape: 'Forma Viso', eyeColor: 'Colore Occhi', eyeShape: 'Stile Occhi',
+        toddler: 'Neonato', child: 'Bimbo', teen: 'Ragazzo', adult: 'Adulto', senior: 'Anziano',
+        round: 'Tondo', oval: 'Ovale', square: 'Quadrato', heart: 'Cuore', diamond: 'Diamante',
+        normal: 'Normali', big: 'Grandi', almond: 'Mandorla', elongated: 'Allungati', bright: 'Brillanti',
+        male: 'Lui', female: 'Lei', short: 'Corti', long: 'Lunghi', bald: 'Rasati', spiky: 'Sparati', bun: 'Chignon', braids: 'Treccine', mohawk: 'Cresta', mullet: 'Mullet', dreadlocks: 'Dread', ponytail: 'Coda',
+        straight: 'Lisci', wavy: 'Mossi', curly: 'Ricci', afro: 'Afro', messy: 'Spettinati', blonde: 'Biondi', brown: 'Castani', black: 'Neri', red: 'Rossi', gray: 'Grigi', pink: 'Rosa', white: 'Bianchi',
+        light: 'Chiara', medium: 'Media', dark: 'Scura', pale: 'Pallida', olive: 'Olivastra', ebony: 'Ebano', blue: 'Blu', green: 'Verdi', hazel: 'Nocciola', none: 'No', sunglasses: 'Sole', aviator: 'Aviatore', goggles: 'Sportivi',
+        cap: 'Berretto', beanie: 'Lana', hat: 'Cappello', crown: 'Corona', headband: 'Fascetta', cowboy: 'Cowboy', helmet: 'Casco',
+        tshirt: 'T-Shirt', hoodie: 'Felpa', dress: 'Elegante', shirt: 'Camicia', jacket: 'Giacca', suit: 'Completo', sweater: 'Maglione', overalls: 'Salopette', coat: 'Cappotto',
+        kimono: 'Kimono', sport: 'Sportivo', tuxedo: 'Smoking', chef: 'Chef', superhero: 'Supereroe', swimsuit: 'Costume',
+        orange: 'Arancio', yellow: 'Giallo', purple: 'Viola', cyan: 'Ciano', lime: 'Lime', outfit: 'Outfit', face: 'Viso & Occhi', hair: 'Capelli',
+        beard: 'Barba', mustache: 'Baffi', facialHair: 'Barba / Baffi'
     }
 };
 
-// --- PIXAR STYLE CONFIGURATION ---
+
 const AVATAR_OPTIONS = {
     gender: [
-        { id: 'male', emoji: '👦', gradient: 'from-blue-400 to-blue-600', shadow: 'shadow-blue-300' },
-        { id: 'female', emoji: '👧', gradient: 'from-pink-400 to-pink-600', shadow: 'shadow-pink-300' }
+        { id: 'male', label: 'Lui', emoji: '👨', gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-200' },
+        { id: 'female', label: 'Lei', emoji: '👩', gradient: 'from-pink-500 to-purple-600', shadow: 'shadow-pink-200' },
+    ],
+    facialHair: [
+        { id: 'none', label: 'No', emoji: '🚫' },
+        { id: 'beard', label: 'Barba', emoji: '🧔' },
+        { id: 'mustache', label: 'Baffi', emoji: '👨' },
+    ],
+    eyes: [
+        { id: 'blue', color: '#3B82F6' },
+        { id: 'green', color: '#10B981' },
+        { id: 'brown', color: '#78350F' },
+        { id: 'black', color: '#171717' },
+    ],
+    clothing: [
+        { id: 'tshirt', emoji: '👕' },
+        { id: 'hoodie', emoji: '🥵' },
+        { id: 'dress', emoji: '👗' },
+        { id: 'shirt', emoji: '👔' },
+        { id: 'jacket', emoji: '🥵' },
+    ],
+    ageGroup: [
+        { id: 'toddler', emoji: '👶' },
+        { id: 'child', emoji: '👦' },
+        { id: 'teen', emoji: '🧑' },
+        { id: 'adult', emoji: '👨' },
+        { id: 'senior', emoji: '👴' },
+    ],
+    faceShape: [
+        { id: 'round', emoji: '🟡' },
+        { id: 'oval', emoji: '🥚' },
+        { id: 'square', emoji: '🟦' },
+        { id: 'heart', emoji: '❤️' },
+        { id: 'diamond', emoji: '🔹' },
+    ],
+    eyeColor: [
+        { id: 'blue', color: '#3B82F6' },
+        { id: 'green', color: '#10B981' },
+        { id: 'brown', color: '#78350F' },
+        { id: 'black', color: '#171717' },
+        { id: 'hazel', color: '#D97706' },
+    ],
+    eyeShape: [
+        { id: 'normal', emoji: '👁️' },
+        { id: 'big', emoji: '👀' },
+        { id: 'almond', emoji: '🌰' },
+        { id: 'elongated', emoji: '✨' },
+        { id: 'bright', emoji: '🌟' },
+    ],
+    skinColor: [
+        { id: 'light', color: '#FDE68A' },
+        { id: 'medium', color: '#FDBA74' },
+        { id: 'dark', color: '#A97142' },
+        { id: 'pale', color: '#FEF3C7' },
+        { id: 'olive', color: '#D97706' },
+        { id: 'ebony', color: '#451A03' },
     ],
     hairStyle: [
-        { id: 'short', emoji: '🧑' },
+        { id: 'short', emoji: '👦' },
         { id: 'long', emoji: '👩' },
         { id: 'bald', emoji: '👨‍🦲' },
-        { id: 'spiky', emoji: '👱' },
+        { id: 'spiky', emoji: '🦔' },
         { id: 'bun', emoji: '👱‍♀️' },
         { id: 'braids', emoji: '👧' },
+        { id: 'mohawk', emoji: '🐔' },
+        { id: 'ponytail', emoji: '🐴' },
     ],
     hairTexture: [
         { id: 'straight', emoji: '📏' },
         { id: 'wavy', emoji: '〰️' },
         { id: 'curly', emoji: '🌀' },
         { id: 'afro', emoji: '🥦' },
+        { id: 'messy', emoji: '💨' },
     ],
     hairColor: [
         { id: 'blonde', color: '#FCD34D' },
@@ -65,54 +107,61 @@ const AVATAR_OPTIONS = {
         { id: 'pink', color: '#F472B6' },
         { id: 'white', color: '#F3F4F6' },
     ],
-    skinColor: [
-        { id: 'light', color: '#FDE68A' },
-        { id: 'medium', color: '#FDBA74' },
-        { id: 'dark', color: '#A97142' },
-        { id: 'pale', color: '#FEF3C7' },
-    ],
-    eyes: [
-        { id: 'blue', color: '#60A5FA' },
-        { id: 'green', color: '#34D399' },
-        { id: 'brown', color: '#78350F' },
-        { id: 'black', color: '#000000' },
-    ],
     glasses: [
-        { id: 'none', emoji: '👀' },
+        { id: 'none', emoji: '🚫' },
         { id: 'round', emoji: '👓' },
         { id: 'sunglasses', emoji: '🕶️' },
         { id: 'square', emoji: '🤓' },
+        { id: 'aviator', emoji: '✈️' },
+        { id: 'goggles', emoji: '🥽' },
     ],
     headwear: [
-        { id: 'none', emoji: '❌' },
+        { id: 'none', emoji: '🚫' },
         { id: 'cap', emoji: '🧢' },
         { id: 'beanie', emoji: '🧶' },
-        { id: 'hat', emoji: '👒' },
+        { id: 'hat', emoji: '🎩' },
         { id: 'crown', emoji: '👑' },
+        { id: 'cowboy', emoji: '🤠' },
+        { id: 'helmet', emoji: '🪖' },
     ],
-    clothing: [
+    clothingStyle: [
         { id: 'tshirt', emoji: '👕' },
-        { id: 'hoodie', emoji: '🧥' },
+        { id: 'hoodie', emoji: '🥵' },
         { id: 'dress', emoji: '👗' },
         { id: 'shirt', emoji: '👔' },
-        { id: 'jacket', emoji: '🧥' },
+        { id: 'jacket', emoji: '🥵' },
+        { id: 'suit', emoji: '🤵' },
+        { id: 'sweater', emoji: '🧶' },
+        { id: 'kimono', emoji: '👘' },
+        { id: 'sport', emoji: '⚽' },
+        { id: 'tuxedo', emoji: '🤵' },
+        { id: 'chef', emoji: '🧑‍🍳' },
+        { id: 'superhero', emoji: '🦸' },
+        { id: 'swimsuit', emoji: '🩱' },
     ],
     clothingColor: [
-        { id: 'red', color: '#EF4444' },
         { id: 'blue', color: '#3B82F6' },
+        { id: 'red', color: '#EF4444' },
         { id: 'green', color: '#10B981' },
-        { id: 'yellow', color: '#F59E0B' },
-        { id: 'purple', color: '#8B5CF6' },
-        { id: 'black', color: '#1F2937' },
-        { id: 'white', color: '#F3F4F6' },
         { id: 'orange', color: '#F97316' },
-        { id: 'pink', color: '#EC4899' },
+        { id: 'yellow', color: '#EAB308' },
+        { id: 'purple', color: '#8B5CF6' },
+        { id: 'cyan', color: '#06B6D4' },
+        { id: 'lime', color: '#84CC16' },
+        { id: 'black', color: '#18181B' },
+        { id: 'white', color: '#F4F4F5' },
+        { id: 'brown', color: '#92400E' },
     ]
 };
 
+
 const DEFAULT_CONFIG: AvatarConfig = {
     gender: 'male',
+    ageGroup: 'adult',
+    faceShape: 'oval',
     skinColor: 'light',
+    eyeColor: 'brown',
+    eyeShape: 'normal',
     hairColor: 'brown',
     hairStyle: 'short',
     hairTexture: 'straight',
@@ -271,15 +320,25 @@ const AvatarCreatorModal: React.FC<{
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
-    const adultsList = preferences.adultsData || [];
-    const childrenList = preferences.children || [];
+    const adultsList = (preferences.adultsData || []) || [];
+    const childrenList = (preferences.children || []) || [];
     const targetItem = activeTab === 'adults' ? adultsList[activeIndex] : childrenList[activeIndex];
     const lang = preferences.language || 'it';
     const labels = AVATAR_LABELS[lang] || AVATAR_LABELS['it'];
 
     useEffect(() => {
         if (targetItem) {
-            setConfig(targetItem.avatarConfig || DEFAULT_CONFIG);
+            let initialConfig = targetItem.avatarConfig || DEFAULT_CONFIG;
+            if (!targetItem.avatarConfig) {
+                if (activeTab === 'children') {
+                    const childAge = parseInt((targetItem as any).age) || 0;
+                    let smartAgeGroup = 'child';
+                    if (childAge > 0 && childAge <= 3) smartAgeGroup = 'toddler';
+                    else if (childAge > 12) smartAgeGroup = 'teen';
+                    initialConfig = { ...initialConfig, ageGroup: smartAgeGroup };
+                }
+            }
+            setConfig(initialConfig);
             setCurrentAvatarUrl(targetItem.avatarUrl);
             const newName = activeTab === 'adults' 
                 ? ((targetItem as AdultData).role || `Adulto ${activeIndex + 1}`)
@@ -301,16 +360,7 @@ const AvatarCreatorModal: React.FC<{
 
             const hatDescription = config.headwear && config.headwear !== 'none' ? `wearing a ${config.headwear}` : 'no hat';
 
-            const prompt = `
-                Pixar style 3D character portrait of a ${subject}.
-                Features: ${config.hairStyle} style with ${config.hairTexture} texture, color ${config.hairColor}.
-                Skin: ${config.skinColor} skin tone. Eyes: ${config.eyeStyle} color.
-                Wearing: ${config.clothingColor} ${config.clothingStyle}.
-                Accessories: ${config.accessory !== 'none' ? config.accessory + ' glasses' : 'no glasses'}, ${hatDescription}.
-                Expression: Happy, warm smile.
-                Lighting: Soft studio lighting, cinematic 4k render.
-                Background: Soft gradient, clean.
-            `;
+            const prompt = `cute 3D Pixar character portrait headshot of a friendly ${subject}, Disney Pixar animation movie style, beautiful open big bright ${config.eyeColor || config.eyeStyle || 'brown'} eyes, warm happy smile, ${config.hairStyle} style with ${config.hairTexture} texture ${config.hairColor} hair, ${config.skinColor} skin tone ${config.freckles ? 'with cute freckles' : ''}, ${config.facialHair !== 'none' ? 'with ' + config.facialHair : ''}, wearing ${config.clothingColor} ${config.clothingStyle}, ${config.accessory !== 'none' ? 'wearing ' + config.accessory + ' glasses' : ''}, ${hatDescription}, soft studio lighting, 8k cinematic 3D render, pure clean solid background`;
 
             const role = activeTab === 'adults' ? `Adult ${activeIndex + 1}` : `Child ${activeIndex + 1}`;
             const url = await generateFamilyMemberAvatar(prompt, role);
@@ -511,42 +561,101 @@ const AvatarCreatorModal: React.FC<{
 
                         <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-4"><span className="w-2 h-2 rounded-full bg-rose-400"></span> {labels.face}</label>
-                            <div className="flex flex-col xl:flex-row xl:items-center gap-6 mb-6">
-                                <div className="flex items-center bg-white p-4 rounded-2xl shadow-sm gap-4">
-                                    <div className="flex gap-[-8px]">
-                                        {AVATAR_OPTIONS.skinColor.map((c, i) => (
-                                            <button key={c.id} onClick={() => setConfig({...config, skinColor: c.id})} className={`w-8 h-8 rounded-full border-2 border-white shadow-sm transition-transform -ml-2 first:ml-0 relative hover:z-10 hover:scale-125 ${config.skinColor === c.id ? 'scale-125 z-10 ring-2 ring-indigo-400' : ''}`} style={{backgroundColor: c.color}} />
+                            
+                            {/* Fascia Et� */}
+                            <div className="mb-4">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">{labels.ageGroup}</span>
+                                <div className="flex flex-wrap gap-2">
+                                    {AVATAR_OPTIONS.ageGroup.map(a => (
+                                        <button key={a.id} onClick={() => setConfig({...config, ageGroup: a.id})} className={`px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all flex items-center gap-1.5 ${config.ageGroup === a.id ? 'bg-amber-400 border-amber-500 text-amber-950 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>{a.emoji} {labels[a.id] || a.id}</button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Forma Viso */}
+                            <div className="mb-4">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">{labels.faceShape}</span>
+                                <div className="flex flex-wrap gap-2">
+                                    {AVATAR_OPTIONS.faceShape.map(f => (
+                                        <button key={f.id} onClick={() => setConfig({...config, faceShape: f.id})} className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all flex items-center gap-1.5 ${config.faceShape === f.id ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>{f.emoji} {labels[f.id] || f.id}</button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Carnagione e Colore/Stile Occhi */}
+                            <div className="space-y-4 mb-4">
+                                <div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Carnagione</span>
+                                    <div className="flex gap-2 flex-wrap bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
+                                        {AVATAR_OPTIONS.skinColor.map(c => (
+                                            <button key={c.id} onClick={() => setConfig({...config, skinColor: c.id})} className={`w-8 h-8 rounded-full border-2 border-white shadow-sm transition-transform relative hover:scale-110 ${config.skinColor === c.id ? 'scale-125 ring-2 ring-indigo-500 z-10' : ''}`} style={{backgroundColor: c.color}} title={labels[c.id] || c.id} />
                                         ))}
                                     </div>
-                                    <div className="w-px h-8 bg-slate-100"></div>
-                                    <div className="flex gap-2">
-                                        {AVATAR_OPTIONS.eyes.map(c => (
-                                            <button key={c.id} onClick={() => setConfig({...config, eyeStyle: c.id})} className={`w-5 h-5 rounded-full border-2 border-white shadow-sm transition-transform ${config.eyeStyle === c.id ? 'scale-150 ring-1 ring-indigo-400 z-10' : 'hover:scale-125'}`} style={{background: `radial-gradient(circle at 30% 30%, ${c.color}, #000)`}} />
+                                </div>
+                                
+                                <div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">{labels.eyeColor}</span>
+                                    <div className="flex gap-2 flex-wrap bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
+                                        {AVATAR_OPTIONS.eyeColor.map(c => (
+                                            <button key={c.id} onClick={() => setConfig({...config, eyeColor: c.id, eyeStyle: c.id})} className={`w-7 h-7 rounded-full border-2 border-white shadow-sm transition-transform relative hover:scale-125 ${(config.eyeColor || config.eyeStyle) === c.id ? 'scale-125 ring-2 ring-indigo-500 z-10' : ''}`} style={{background: `radial-gradient(circle at 30% 30%, ${c.color}, #000)`}} title={labels[c.id] || c.id} />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">{labels.eyeShape}</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {AVATAR_OPTIONS.eyeShape.map(e => (
+                                            <button key={e.id} onClick={() => setConfig({...config, eyeShape: e.id})} className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all flex items-center gap-1.5 ${config.eyeShape === e.id ? 'bg-sky-600 border-sky-600 text-white shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>{e.emoji} {labels[e.id] || e.id}</button>
                                         ))}
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex gap-3 justify-start flex-wrap">
-                                {AVATAR_OPTIONS.glasses.map(g => (
-                                    <button key={g.id} onClick={() => setConfig({...config, accessory: g.id})} className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${config.accessory === g.id ? 'bg-amber-100 border-amber-300 shadow-md' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>{g.emoji}</button>
-                                ))}
-                                <div className="w-px h-14 bg-slate-200 mx-2"></div>
-                                {AVATAR_OPTIONS.headwear.map(h => (
-                                    <button key={h.id} onClick={() => setConfig({...config, headwear: h.id})} className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${config.headwear === h.id ? 'bg-purple-100 border-purple-300 shadow-md' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>{h.emoji}</button>
-                                ))}
+                            
+                            <div className="flex gap-4 mb-4">
+                                <label className="flex items-center gap-2 text-sm font-bold text-slate-600 cursor-pointer">
+                                    <input type="checkbox" checked={config.freckles} onChange={(e) => setConfig({...config, freckles: e.target.checked})} className="w-5 h-5 rounded border-slate-300 text-indigo-500 focus:ring-indigo-500" />
+                                    Lentiggini 🌟
+                                </label>
+                            </div>
+
+                            {/* Barba / Baffi */}
+                            <div className="mb-4">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Barba / Baffi</span>
+                                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide justify-start">
+                                    {AVATAR_OPTIONS.facialHair.map(f => (
+                                        <button key={f.id} onClick={() => setConfig({...config, facialHair: f.id})} className={`px-4 py-2 rounded-xl text-xs font-bold border-b-4 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-2 whitespace-nowrap ${config.facialHair === f.id ? 'bg-slate-700 border-slate-900 text-white shadow-lg' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>{f.emoji} {labels[f.id] || f.id}</button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Occhiali e Cappelli */}
+                            <div>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Occhiali & Copricapi</span>
+                                <div className="flex gap-3 justify-start flex-wrap">
+                                    {AVATAR_OPTIONS.glasses.map(g => (
+                                        <button key={g.id} onClick={() => setConfig({...config, accessory: g.id})} className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${config.accessory === g.id ? 'bg-amber-100 border-amber-300 shadow-md' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>{g.emoji}</button>
+                                    ))}
+                                    <div className="w-px h-14 bg-slate-200 mx-2"></div>
+                                    {AVATAR_OPTIONS.headwear.map(h => (
+                                        <button key={h.id} onClick={() => setConfig({...config, headwear: h.id})} className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${config.headwear === h.id ? 'bg-purple-100 border-purple-300 shadow-md' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>{h.emoji}</button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
+                        {/* OUTFIT SECTION */}
                         <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-4"><span className="w-2 h-2 rounded-full bg-blue-400"></span> {labels.outfit}</label>
-                            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-                                {AVATAR_OPTIONS.clothing.map(c => (
-                                    <button key={c.id} onClick={() => setConfig({...config, clothingStyle: c.id})} className={`min-w-[90px] p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${config.clothingStyle === c.id ? 'bg-white border-blue-400 shadow-lg scale-105' : 'bg-white border-slate-100 hover:border-blue-200 opacity-70 hover:opacity-100'}`}><span className="text-4xl drop-shadow-md">{c.emoji}</span> <span className={`text-[10px] font-black uppercase ${config.clothingStyle === c.id ? 'text-blue-600' : 'text-slate-400'}`}>{labels[c.id] || c.id}</span></button>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mb-4">
+                                {AVATAR_OPTIONS.clothingStyle.map(c => (
+                                    <button key={c.id} onClick={() => setConfig({...config, clothingStyle: c.id})} className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-1.5 ${config.clothingStyle === c.id ? 'bg-white border-blue-500 shadow-lg scale-105 ring-2 ring-blue-200' : 'bg-white border-slate-100 hover:border-blue-200 opacity-80 hover:opacity-100'}`}><span className="text-3xl drop-shadow-md">{c.emoji}</span> <span className={`text-[10px] font-black uppercase tracking-tight text-center ${config.clothingStyle === c.id ? 'text-blue-600' : 'text-slate-400'}`}>{labels[c.id] || c.id}</span></button>
                                 ))}
                             </div>
-                            <div className="flex gap-2 flex-wrap justify-start p-3 bg-white rounded-2xl shadow-sm mt-4 w-fit">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Colore Outfit</span>
+                            <div className="flex gap-2 flex-wrap justify-start p-3 bg-white rounded-2xl shadow-sm border border-slate-100 w-fit">
                                 {AVATAR_OPTIONS.clothingColor.map(c => (
-                                    <button key={c.id} onClick={() => setConfig({...config, clothingColor: c.id})} className={`w-8 h-8 rounded-full shadow-inner transition-transform border-2 border-white ${config.clothingColor === c.id ? 'scale-125 ring-2 ring-blue-400' : 'hover:scale-110'}`} style={{backgroundColor: c.color}} />
+                                    <button key={c.id} onClick={() => setConfig({...config, clothingColor: c.id})} className={`w-8 h-8 rounded-full shadow-inner transition-transform border-2 border-white ${config.clothingColor === c.id ? 'scale-125 ring-2 ring-blue-400' : 'hover:scale-110'}`} style={{backgroundColor: c.color}} title={labels[c.id] || c.id} />
                                 ))}
                             </div>
                         </div>
@@ -559,6 +668,14 @@ const AvatarCreatorModal: React.FC<{
 
 export const PlannerForm: React.FC<PlannerFormProps> = ({ preferences, setPreferences, onSubmit, isLoading, onLocate, isLocating, locationError, t }) => {
   const [avatarModalState, setAvatarModalState] = useState<{isOpen: boolean, tab: 'adults' | 'children', index: number} | null>(null);
+  const [familyCollapsed, setFamilyCollapsed] = useState(false);
+
+  // Auto-collapse if family already has names from a previous session
+  useEffect(() => {
+    const hasNames = ((preferences.adultsData || []) || []).some(a => a && a.role && a.role.trim().length > 0) ||
+                     (preferences.children || []).some(c => c && c.name && c.name.trim().length > 0);
+    if (hasNames) setFamilyCollapsed(true);
+  }, []);
 
   // Ensure adult data is synchronized with adult count
   useEffect(() => {
@@ -579,11 +696,11 @@ export const PlannerForm: React.FC<PlannerFormProps> = ({ preferences, setPrefer
       });
   }, [preferences.adults]);
 
-  const handleAddChild = () => setPreferences(prev => ({ ...prev, children: [...prev.children, { name: '', age: '' }] }));
-  const handleRemoveChild = (index: number) => setPreferences(prev => ({ ...prev, children: prev.children.filter((_, i) => i !== index) }));
+  const handleAddChild = () => setPreferences(prev => ({ ...prev, children: [...(prev.children || []), { name: '', age: '' }] }));
+  const handleRemoveChild = (index: number) => setPreferences(prev => ({ ...prev, children: (prev.children || []).filter((_, i) => i !== index) }));
   const handleChildChange = (index: number, field: keyof Child, value: string) => {
     setPreferences(prev => {
-      const newChildren = [...prev.children];
+      const newChildren = [...(prev.children || [])];
       if(newChildren[index]) {
           newChildren[index] = { ...newChildren[index], [field]: value };
       }
@@ -611,7 +728,7 @@ export const PlannerForm: React.FC<PlannerFormProps> = ({ preferences, setPrefer
 
   const handleUpdateChildAvatar = (index: number, data: Partial<Child>) => {
       setPreferences(prev => {
-          const newChildren = [...prev.children];
+          const newChildren = [...(prev.children || [])];
           if (newChildren[index]) {
               newChildren[index] = { ...newChildren[index], ...data };
           }
@@ -619,7 +736,25 @@ export const PlannerForm: React.FC<PlannerFormProps> = ({ preferences, setPrefer
       });
   };
 
-  // AUTO-FALLBACK & VALIDATION PER SUBMIT BUTTON (rimuove frizione utente)
+  // Ensure adult data is synchronized with adult count
+  useEffect(() => {
+      setPreferences(prev => {
+          const currentCount = prev.adultsData?.length || 0;
+          const targetCount = prev.adults;
+          if (currentCount === targetCount && prev.adultsData) return prev;
+          
+          let newData = prev.adultsData ? [...prev.adultsData] : [];
+          if (targetCount > currentCount) {
+              for(let i = currentCount; i < targetCount; i++) {
+                  newData.push({ id: Date.now().toString() + i, role: '' });
+              }
+          } else {
+              newData = newData.slice(0, targetCount);
+          }
+          return { ...prev, adultsData: newData };
+      });
+  }, [preferences.adults]);
+
   const isFormValid = true;
 
   return (
@@ -639,69 +774,100 @@ export const PlannerForm: React.FC<PlannerFormProps> = ({ preferences, setPrefer
 
       <div className="space-y-12">
         <section className="animate-fade-in-up" style={{animationDelay: '0.1s'}}>
-          <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-            <Users className="w-4 h-4 text-indigo-500" /> {t.who_participates}
-          </h3>
-          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-6 relative">
-             
-             {/* ADULTS SECTION */}
-             <div className="flex items-center justify-between mb-4">
-                 <div className="flex items-center gap-3">
-                     <div className="p-3 bg-white rounded-xl shadow-sm"><User className="w-6 h-6 text-slate-700" /></div>
-                     <span className="font-bold text-slate-700">{t.adults}</span>
-                 </div>
-                 <div className="flex items-center gap-3 bg-white rounded-xl p-1 shadow-sm border border-slate-200">
-                     <button onClick={() => updateAdults(-1)} className="w-10 h-10 flex items-center justify-center bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"><Minus className="w-4 h-4" /></button>
-                     <span className="font-black text-xl w-6 text-center">{preferences.adults}</span>
-                     <button onClick={() => updateAdults(1)} className="w-10 h-10 flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
-                 </div>
-             </div>
-             
-             {/* ADULTS INPUT FIELDS (NEW) */}
-             <div className="space-y-3 mb-6">
-                {(preferences.adultsData || []).map((adult, index) => (
-                    adult ? (
-                    <div key={index} className="flex gap-3 animate-fade-in-up">
-                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-                             {adult.avatarUrl ? <img src={adult.avatarUrl} className="w-full h-full object-cover" /> : <User className="w-5 h-5 text-slate-400" />}
-                        </div>
-                        <input 
-                            type="text" 
-                            placeholder={`${t.name_placeholder} ${index + 1}`}
-                            value={adult.role || ''} 
-                            onChange={(e) => handleUpdateAdult(index, { role: e.target.value })} 
-                            className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium placeholder:font-normal" 
-                        />
+          <div className="mb-6 flex flex-col items-center justify-center text-center gap-3">
+              <div className="flex items-center justify-center flex-wrap gap-1.5 w-full max-w-lg mx-auto">
+                <h3
+                  className="text-2xl sm:text-3xl text-indigo-600 leading-tight tracking-tight flex items-center justify-center flex-wrap gap-1.5"
+                  style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700 }}
+                >
+                  <span>{t.who_participates}</span>
+                  <input
+                    type="text"
+                    value={preferences.familyName || ''}
+                    onChange={(e) => setPreferences({...preferences, familyName: e.target.value})}
+                    placeholder="Rossi"
+                    className="inline-block bg-transparent border-b-2 border-indigo-300 focus:border-indigo-600 text-indigo-600 outline-none placeholder-indigo-300 pb-0.5 text-center transition-colors"
+                    style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'inherit', minWidth: '70px', width: preferences.familyName ? `${Math.max(60, preferences.familyName.length * 20)}px` : '75px' }}
+                  />
+                </h3>
+              </div>
+              
+              <button
+                onClick={() => setFamilyCollapsed(v => !v)}
+                className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-4 py-1.5 rounded-full transition-all shadow-sm active:scale-95 border border-indigo-100/80"
+              >
+                <Edit2 className="w-3.5 h-3.5 text-indigo-500" />
+                <span>{familyCollapsed ? 'Modifica dati' : 'Chiudi dati'}</span>
+              </button>
+            </div>
+
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-6 relative">
+              {!familyCollapsed && (
+                <div className="space-y-6">
+                  {/* ADULTS SECTION */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-white rounded-xl shadow-sm"><User className="w-6 h-6 text-slate-700" /></div>
+                        <span className="font-bold text-slate-700">{t.adults}</span>
+                      </div>
+                      <div className="flex items-center gap-3 bg-white rounded-xl p-1 shadow-sm border border-slate-200">
+                        <button onClick={() => updateAdults(-1)} className="w-10 h-10 flex items-center justify-center bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"><Minus className="w-4 h-4" /></button>
+                        <span className="font-black text-xl w-6 text-center">{preferences.adults}</span>
+                        <button onClick={() => updateAdults(1)} className="w-10 h-10 flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
+                      </div>
                     </div>
-                    ) : null
-                ))}
-             </div>
-
-             {/* CHILDREN SECTION */}
-             <div className="space-y-3">
-                {preferences.children.map((child, index) => {
-                    if(!child) return null; 
-                    return (
-                        <div key={index} className="flex gap-3 animate-fade-in-up">
+                    <div className="space-y-4">
+                      {(preferences.adultsData || []).map((adult, index) => (
+                        adult ? (
+                          <div key={index} className="flex gap-3 animate-fade-in-up">
                             <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-                                {child.avatarUrl ? <img src={child.avatarUrl} className="w-full h-full object-cover" /> : <Smile className="w-5 h-5 text-slate-400" />}
+                              {adult.avatarUrl ? <img src={adult.avatarUrl} className="w-full h-full object-cover" /> : <User className="w-5 h-5 text-slate-400" />}
                             </div>
-                            <input type="text" placeholder={t.name_placeholder} value={child.name} onChange={(e) => handleChildChange(index, 'name', e.target.value)} className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium placeholder:font-normal" />
-                            <input type="number" min="0" max="17" placeholder={t.age_placeholder} value={child.age} onChange={(e) => handleChildChange(index, 'age', e.target.value)} className="w-20 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold" />
-                            <button onClick={() => handleRemoveChild(index)} className="p-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                    );
-                })}
-                <button onClick={handleAddChild} className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:border-indigo-400 hover:text-indigo-600 font-bold text-sm transition-all flex items-center justify-center gap-2 mt-4"><Plus className="w-4 h-4" /> {t.add_child}</button>
-             </div>
+                            <input 
+                              type="text" 
+                              placeholder={`${t.name_placeholder} ${index + 1}`}
+                              value={adult.role || ''} 
+                              onChange={(e) => handleUpdateAdult(index, { role: e.target.value })} 
+                              className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium placeholder:font-normal" 
+                            />
+                          </div>
+                        ) : null
+                      ))}
+                    </div>
+                  </div>
 
-             <div className="mt-6 pt-6 border-t border-slate-200">
+                  {/* CHILDREN SECTION */}
+                  <div className="space-y-3 pt-4 border-t border-slate-200/60">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2.5 bg-white rounded-xl shadow-sm"><Smile className="w-5 h-5 text-indigo-500" /></div>
+                      <span className="font-bold text-slate-700 text-sm">Bambini & Ragazzi</span>
+                    </div>
+                    {(preferences.children || []).map((child, index) => {
+                      if(!child) return null; 
+                      return (
+                        <div key={index} className="flex gap-3 animate-fade-in-up">
+                          <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
+                            {child.avatarUrl ? <img src={child.avatarUrl} className="w-full h-full object-cover" /> : <Smile className="w-5 h-5 text-slate-400" />}
+                          </div>
+                          <input type="text" placeholder={t.name_placeholder} value={child.name} onChange={(e) => handleChildChange(index, 'name', e.target.value)} className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium placeholder:font-normal" />
+                          <input type="number" min="0" max="17" placeholder={t.age_placeholder} value={child.age} onChange={(e) => handleChildChange(index, 'age', e.target.value)} className="w-20 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold" />
+                          <button onClick={() => handleRemoveChild(index)} className="p-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      );
+                    })}
+                    <button onClick={handleAddChild} className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:border-indigo-400 hover:text-indigo-600 font-bold text-sm transition-all flex items-center justify-center gap-2 mt-4"><Plus className="w-4 h-4" /> {t.add_child}</button>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-6 pt-6 border-t border-slate-200">
                 <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Avatar</span>
                     <button onClick={() => setAvatarModalState({ isOpen: true, tab: 'adults', index: 0 })} className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"><Palette className="w-3 h-3"/> Editor</button>
                 </div>
                 <div className="grid grid-cols-2 gap-y-8 gap-x-4 md:flex md:flex-wrap md:justify-center md:gap-8 pb-4 py-4 justify-items-center">
-                    {(preferences.adultsData || []).map((ad, i) => {
+                    {((preferences.adultsData || []) || []).map((ad, i) => {
                         if (!ad) return null; 
                         return (
                             <button key={`ad-${i}`} onClick={() => setAvatarModalState({ isOpen: true, tab: 'adults', index: i })} className="flex flex-col items-center gap-3 group transition-transform hover:-translate-y-1 w-full max-w-[160px]">
@@ -712,7 +878,7 @@ export const PlannerForm: React.FC<PlannerFormProps> = ({ preferences, setPrefer
                             </button>
                         );
                     })}
-                    {preferences.children.map((ch, i) => {
+                    {(preferences.children || []).map((ch, i) => {
                         if (!ch) return null; 
                         return (
                             <button key={`ch-${i}`} onClick={() => setAvatarModalState({ isOpen: true, tab: 'children', index: i })} className="flex flex-col items-center gap-3 group transition-transform hover:-translate-y-1 w-full max-w-[160px]">
@@ -783,11 +949,34 @@ export const PlannerForm: React.FC<PlannerFormProps> = ({ preferences, setPrefer
 
         <section className="animate-fade-in-up" style={{animationDelay: '0.4s'}}>
              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Heart className="w-4 h-4 text-rose-500" /> {t.mood_title}</h3>
-            <div className="grid grid-cols-2 gap-2 mb-6">
-                {[{ id: 'surprise', label: t.vibe_surprise, color: 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white' },{ id: 'nature', label: t.vibe_nature, color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },{ id: 'culture', label: t.vibe_culture, color: 'bg-amber-100 text-amber-700 border-amber-200' },{ id: 'adventure', label: t.vibe_adventure, color: 'bg-orange-100 text-orange-700 border-orange-200' },{ id: 'magic', label: t.vibe_magic, color: 'bg-pink-100 text-pink-700 border-pink-200' },{ id: 'food', label: t.vibe_food, color: 'bg-red-100 text-red-700 border-red-200' },].map((v) => (
-                    <button key={v.id} onClick={() => handleVibeChange(v.id)} className={`p-3 rounded-xl text-xs font-bold border transition-all shadow-sm ${preferences.vibe === v.id ? v.color + ' ring-2 ring-offset-2 ring-indigo-500' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}>{v.label}</button>
-                ))}
-            </div>
+            <div className="grid grid-cols-3 gap-3 mb-6">
+                {[
+                  { id: 'surprise',  label: t.vibe_surprise || 'Sorprendimi',  color: 'bg-indigo-600 text-white shadow-indigo-200', icon: 'https://img.icons8.com/3d-fluency/94/gift.png' },
+                  { id: 'nature',    label: t.vibe_nature || 'Natura',    color: 'bg-emerald-600 text-white shadow-emerald-200', icon: 'https://img.icons8.com/3d-fluency/94/evergreen-tree.png' },
+                  { id: 'culture',   label: t.vibe_culture || 'Cultura',   color: 'bg-amber-600 text-white shadow-amber-200', icon: 'https://img.icons8.com/3d-fluency/94/bank.png' },
+                  { id: 'adventure', label: t.vibe_adventure || 'Avventura', color: 'bg-orange-600 text-white shadow-orange-200', icon: 'https://img.icons8.com/3d-fluency/94/compass.png' },
+                  { id: 'magic',     label: t.vibe_magic || 'Fiabe & Magia',     color: 'bg-pink-600 text-white shadow-pink-200', icon: 'https://img.icons8.com/3d-fluency/94/crystal-ball.png' },
+                  { id: 'food',      label: t.vibe_food || 'Cibo & Relax',      color: 'bg-rose-600 text-white shadow-rose-200', icon: 'https://img.icons8.com/3d-fluency/94/hamburger.png' },
+                  { id: 'sport',     label: t.vibe_sport || 'Sport',     color: 'bg-sky-600 text-white shadow-sky-200', icon: 'https://img.icons8.com/3d-fluency/94/soccer-ball.png' },
+                  { id: 'relax',     label: t.vibe_relax || 'Relax',     color: 'bg-teal-600 text-white shadow-teal-200', icon: 'https://img.icons8.com/3d-fluency/94/sun.png' },
+                  { id: 'music',     label: t.vibe_music || 'Musica',     color: 'bg-purple-600 text-white shadow-purple-200', icon: 'https://img.icons8.com/3d-fluency/94/musical-notes.png' },
+                  { id: 'beach',     label: t.vibe_beach || 'Mare',     color: 'bg-cyan-600 text-white shadow-cyan-200', icon: 'https://img.icons8.com/3d-fluency/94/beach-umbrella.png' },
+                  { id: 'mountain',  label: t.vibe_mountain || 'Montagna',  color: 'bg-green-700 text-white shadow-green-200', icon: 'https://img.icons8.com/3d-fluency/94/mountain.png' },
+                  { id: 'art',       label: t.vibe_art || 'Arte',       color: 'bg-fuchsia-600 text-white shadow-fuchsia-200', icon: 'https://img.icons8.com/3d-fluency/94/paint-palette.png' },
+                ].map((v) => (
+                    <button
+                        key={v.id}
+                        onClick={() => handleVibeChange(v.id)}
+                        className={`p-3.5 rounded-2xl flex flex-col items-center justify-center gap-2 border transition-all duration-300 group relative overflow-hidden ${
+                          preferences.vibe === v.id
+                            ? `${v.color} shadow-lg ring-4 ring-indigo-300 scale-[1.03]`
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white hover:shadow-md hover:border-indigo-200'
+                        }`}
+                    >
+                        <img src={v.icon} alt={v.label} className="w-10 h-10 object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-110" />
+                        <span className={`text-[11px] font-black uppercase tracking-wide leading-tight text-center ${preferences.vibe === v.id ? 'text-white' : 'text-slate-600'}`}>{v.label}</span>
+                    </button>
+                ))}</div>
             <div className="relative group">
                 <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 group-focus-within:text-indigo-600 transition-colors" />
                 <input type="text" placeholder={t.interests_placeholder} value={preferences.interests} onChange={handleInterestsChange} className="w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl pl-12 pr-4 py-4 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all" />

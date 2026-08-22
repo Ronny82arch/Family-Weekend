@@ -348,11 +348,11 @@ const TRANSLATIONS: any = {
         start_badge: 'Pronti a partire?', hero_title_1: 'Pianifica la tua', hero_title_2: 'Prossima Avventura', hero_desc: "Configura la tua famiglia e crea il weekend perfetto in pochi secondi.",
         home_claim: 'Costruiamo ricordi insieme', create_video: 'Crea Video', 
         planner: 'Home', active: 'In Corso', favorites: 'Preferiti', history: 'Ricordi', map: 'Mappa',
-        who_participates: 'Chi Partecipa?', adults: 'Adulti', name_placeholder: 'Nome', age_placeholder: 'Presunto', add_child: 'Aggiungi Bambino',
+        who_participates: 'Ciao famiglia', adults: 'Adulti', name_placeholder: 'Nome', age_placeholder: 'Presunto', add_child: 'Aggiungi Bambino',
         where_to_go: 'Dove si va?', city_placeholder: 'Città di partenza', radius: 'Raggio',
         when: 'Quando?', saturday: 'Sabato', sunday: 'Domenica', full_day: 'Tutto', morning: 'Mattina', afternoon: 'Pom.', rest: 'Riposo',
         hotel_search: 'Cerchiamo un hotel per la notte?',
-        mood_title: 'Mood & Passioni', vibe_surprise: 'Sorprendimi', vibe_nature: 'Natura', vibe_culture: 'Cultura', vibe_adventure: 'Avventura', vibe_magic: 'Fiabe', vibe_food: 'Cibo',
+        mood_title: 'Mood & Passioni', vibe_surprise: 'Sorprendimi', vibe_nature: 'Natura', vibe_culture: 'Cultura', vibe_adventure: 'Avventura', vibe_magic: 'Fiabe & Magia', vibe_food: 'Cibo & Relax', vibe_sport: 'Sport', vibe_relax: 'Relax', vibe_music: 'Musica', vibe_beach: 'Mare', vibe_mountain: 'Montagna', vibe_art: 'Arte',
         interests_placeholder: 'Interessi specifici (es. dinosauri, treni...)',
         generate_button: 'Genera Piano', generating: 'Creo l\'itinerario...',
         ready_itinerary: 'Itinerario Pronto', regenerate: 'Rigenera', favorite_all: 'Preferito Tutto', save_all: 'Salva Tutto',
@@ -378,11 +378,11 @@ const TRANSLATIONS: any = {
         start_badge: 'Ready?', hero_title_1: 'Plan your', hero_title_2: 'Next Adventure', hero_desc: "Configure your family and create the perfect weekend.",
         home_claim: 'Let\'s build memories together', create_video: 'Create Video',
         planner: 'Home', active: 'Active', favorites: 'Favorites', history: 'Memories', map: 'Map',
-        who_participates: 'Who participates?', adults: 'Adults', name_placeholder: 'Name', age_placeholder: 'Age', add_child: 'Add Child',
+        who_participates: 'Hello family', adults: 'Adults', name_placeholder: 'Name', age_placeholder: 'Age', add_child: 'Add Child',
         where_to_go: 'Where to?', city_placeholder: 'Start city', radius: 'Radius',
         when: 'When?', saturday: 'Saturday', sunday: 'Sunday', full_day: 'Full Day', morning: 'Morning', afternoon: 'Afternoon', rest: 'Rest',
         hotel_search: 'Hotel?',
-        mood_title: 'Mood', vibe_surprise: 'Surprise Me', vibe_nature: 'Nature', vibe_culture: 'Culture', vibe_adventure: 'Adventure', vibe_magic: 'Magic', vibe_food: 'Food',
+        mood_title: 'Mood', vibe_surprise: 'Surprise Me', vibe_nature: 'Nature', vibe_culture: 'Culture', vibe_adventure: 'Adventure', vibe_magic: 'Magic & Fairy Tales', vibe_food: 'Food & Relax', vibe_sport: 'Sport', vibe_relax: 'Relax', vibe_music: 'Music', vibe_beach: 'Beach', vibe_mountain: 'Mountain', vibe_art: 'Art',
         interests_placeholder: 'Specific interests...',
         generate_button: 'Generate Plan', generating: 'Creating...',
         ready_itinerary: 'Ready', regenerate: 'Regenerate', favorite_all: 'Favorite All', save_all: 'Save All',
@@ -543,7 +543,7 @@ const App: React.FC = () => {
         } catch (e) {}
         setPreferences(prev => ({ 
           ...prev, 
-          manualLocation: cityName || `Posizione rilevata (${lat.toFixed(3)}, ${lon.toFixed(3)})` 
+          manualLocation: cityName || 'La mia posizione' 
         }));
         setIsLocating(false);
       },
@@ -562,6 +562,7 @@ const App: React.FC = () => {
   };
 
   const handlePlanGeneration = async (avoidText?: string) => {
+    try { localStorage.setItem('familySetupDone', 'true'); } catch(e) {}
     // Fallback automatico per i nomi degli adulti non compilati
     const updatedAdultsData = (preferences.adultsData || []).map((a, idx) => ({
       ...a,
@@ -762,7 +763,8 @@ const App: React.FC = () => {
                     <div className="max-w-3xl mx-auto">
                         <div className="text-center mb-10 mt-6 relative">
                             <HeartBalloonLogo className="w-20 h-20 mx-auto mb-4 drop-shadow-xl" />
-                            <h2 className="font-serif font-black text-4xl md:text-5xl text-slate-900 mb-4 leading-tight">{t.hero_title_1} <br/><span className="text-indigo-600">{t.hero_title_2}</span></h2>
+                            <h2 className="text-5xl md:text-6xl text-slate-900 mb-3 leading-tight tracking-tight" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700 }}>{t.hero_title_1} <br/><span className="text-indigo-600">{t.hero_title_2}</span></h2>
+<p className="text-slate-500 text-base max-w-md mx-auto mb-4 font-medium">{t.hero_desc}</p>
                             
                             <div className="flex flex-col items-center gap-4">
                                 <p className="text-slate-600 text-xl max-w-lg mx-auto leading-relaxed font-bold">{t.home_claim}</p>
@@ -772,10 +774,13 @@ const App: React.FC = () => {
                                     <div className={`absolute inset-0 bg-white rounded-full blur-[40px] transition-all duration-700 ${isWelcomePlaying ? 'opacity-50 scale-110' : 'opacity-0'}`}></div>
                                     
                                     <button onClick={playWelcomeAudio} className="relative w-full h-full rounded-full border-[12px] border-white shadow-[0_30px_70px_-15px_rgba(3,105,161,0.4)] overflow-hidden bg-white flex items-center justify-center cursor-pointer transition-all hover:scale-105 active:scale-95 group/mascot">
-                                        <TriceratopsMascot 
-                                          className={`w-full h-full p-4 transition-transform duration-700 group-hover/mascot:scale-110 ${isWelcomePlaying ? 'animate-bounce-slow' : ''}`} 
-                                          config={preferences.adultsData?.[0]?.avatarConfig}
-                                        />
+                                        <div className="w-full h-full flex items-center justify-center relative overflow-hidden rounded-full">
+                                          <img 
+                                            src="https://image.pollinations.ai/prompt/cute%20baby%20triceratops%20dinosaur%20pixar%20style%20pure%20white%20background?width=512&height=512&nologo=true&seed=4242"
+                                            alt="Pixar 3D Baby Triceratops Mascot"
+                                            className={`w-full h-full object-cover transition-transform duration-700 scale-[1.35] group-hover/mascot:scale-[1.45] -translate-y-4 ${isWelcomePlaying ? 'animate-bounce-slow' : ''}`} 
+                                          />
+                                        </div>
                                         
                                         {isWelcomePlaying && (
                                             <div className="absolute inset-0 bg-indigo-500/10 flex items-center justify-center pointer-events-none">

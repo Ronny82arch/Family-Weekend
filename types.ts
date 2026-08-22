@@ -1,5 +1,11 @@
 
 export interface AvatarConfig {
+  faceShape?: string;
+  eyeColor?: string;
+  eyeShape?: string;
+  freckles?: boolean;
+  facialHair?: string;
+  ageGroup?: string;
   gender: 'male' | 'female';
   skinColor: string;
   hairColor: string;
