@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Navigation, MapPin, Compass, Sparkles, Map as MapIcon, ChevronRight } from 'lucide-react';
+import { Navigation, MapPin, Compass, Sparkles } from 'lucide-react';
 
 interface Waypoint {
   title: string;
@@ -18,7 +18,6 @@ interface ItineraryRouteMapProps {
   baseCity?: string;
 }
 
-// Default fallback coordinates if geocoding yields no results
 const DEFAULT_CENTER: [number, number] = [41.9028, 12.4964]; // Roma
 
 const geocodeCache: Record<string, [number, number]> = {};
@@ -28,7 +27,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
   familyAvatarUrl,
   selectedIndex = 0,
   onSelectWaypoint,
-  dayTitle = 'Mappa del Percorso',
+  dayTitle = 'Mappa Percorso',
   baseCity = 'Italia'
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -37,29 +36,24 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
   const polylineRef = useRef<any>(null);
 
   const [resolvedCoords, setResolvedCoords] = useState<{ wp: Waypoint; lat: number; lng: number }[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // 1. Geocode waypoints dynamically based on generated itinerary activity names
   useEffect(() => {
     let isMounted = true;
-    setIsLoading(true);
 
     const resolveWaypoints = async () => {
       const results: { wp: Waypoint; lat: number; lng: number }[] = [];
 
       for (let i = 0; i < waypoints.length; i++) {
         const wp = waypoints[i];
-        
-        // Use explicit lat/lng if present
         if (wp.lat && wp.lng && !isNaN(wp.lat) && !isNaN(wp.lng)) {
           results.push({ wp, lat: wp.lat, lng: wp.lng });
           continue;
         }
 
         const cleanTitle = wp.title
-          .replace(/###s*/, '')
-          .replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:s-]*/i, '')
-          .replace(/[😀-🛿]/gu, '')
+          .replace(/###\s*/, '')
+          .replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '')
+          .replace(/[\u{1F600}-\u{1F6FF}]/gu, '')
           .replace(/[|:-]/g, ' ')
           .trim();
 
@@ -91,7 +85,6 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
           }
         } catch (e) {}
 
-        // Offset fallback around base center
         const angle = (i * (360 / Math.max(waypoints.length, 1)) * Math.PI) / 180;
         const radius = 0.015 * (i + 1);
         results.push({
@@ -103,7 +96,6 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
       if (isMounted) {
         setResolvedCoords(results);
-        setIsLoading(false);
       }
     };
 
@@ -111,12 +103,10 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     return () => { isMounted = false; };
   }, [waypoints, baseCity]);
 
-  // 2. Render and manage active Leaflet map
   useEffect(() => {
     if (!mapRef.current || typeof (window as any).L === 'undefined') return;
     const L = (window as any).L;
 
-    // Reset container if previously initialized
     if ((mapRef.current as any)._leaflet_id) {
       delete (mapRef.current as any)._leaflet_id;
     }
@@ -138,7 +128,6 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
       markersGroupRef.current = L.layerGroup().addTo(map);
 
-      // Force size recalculation to prevent blank white container
       [100, 300, 600].forEach(delay => {
         setTimeout(() => {
           if (map && map._container) {
@@ -158,7 +147,6 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     };
   }, []);
 
-  // 3. Update route polyline, bounds, and Pixar avatar markers when coordinates arrive
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !map._container || resolvedCoords.length === 0 || typeof (window as any).L === 'undefined') return;
@@ -173,7 +161,6 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
       const points: [number, number][] = resolvedCoords.map(c => [c.lat, c.lng]);
       const bounds = L.latLngBounds(points);
 
-      // Draw route line connecting waypoints
       if (points.length > 1) {
         polylineRef.current = L.polyline(points, {
           color: '#4f46e5',
@@ -184,17 +171,17 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
         }).addTo(map);
       }
 
-      // Add markers for each waypoint
       resolvedCoords.forEach((c, idx) => {
         const isSelected = idx === selectedIndex;
         const avatarSrc = familyAvatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=family';
         const titleClean = c.wp.title.replace(/###\s*/, '').replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '').trim();
 
-        let categoryEmoji = '??';
+        // Safe Unicode Escapes for Category Icons (No ?? corruption)
+        let categoryEmoji = '\u{1F4CD}';
         const tLower = titleClean.toLowerCase();
-        if (tLower.match(/pranzo|cena|ristorante|trattoria|osteria|pizzeria/)) categoryEmoji = '???';
-        else if (tLower.match(/parco|bosco|giardino|natura|oasi|fiume|lago/)) categoryEmoji = '??';
-        else if (tLower.match(/castello|rocca|palazzo|museo|mostra/)) categoryEmoji = '??';
+        if (tLower.match(/pranzo|cena|ristorante|trattoria|osteria|pizzeria/)) categoryEmoji = '\u{1F37D}';
+        else if (tLower.match(/parco|bosco|giardino|natura|oasi|fiume|lago/)) categoryEmoji = '\u{1F333}';
+        else if (tLower.match(/castello|rocca|palazzo|museo|mostra/)) categoryEmoji = '\u{1F3F0}';
 
         const iconHtml = `
           <div class="relative group cursor-pointer transition-all duration-300 ${isSelected ? 'scale-125 z-50' : 'hover:scale-110 z-10'}">
@@ -249,7 +236,6 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     }
   }, [resolvedCoords, selectedIndex, familyAvatarUrl]);
 
-  // Smooth pan on index change
   useEffect(() => {
     if (!mapInstanceRef.current || !resolvedCoords[selectedIndex]) return;
     const { lat, lng } = resolvedCoords[selectedIndex];
@@ -257,11 +243,9 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
   }, [selectedIndex, resolvedCoords]);
 
   return (
-    <div className="relative w-full h-[340px] sm:h-[400px] rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-2xl bg-slate-900 mb-8 group">
-      {/* Active Leaflet Map Container */}
+    <div className="relative w-full h-[340px] sm:h-[380px] rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-2xl bg-slate-900 mb-8 group">
       <div ref={mapRef} className="w-full h-full min-h-[340px] z-0" />
 
-      {/* Floating Header Card */}
       <div className="absolute top-4 left-4 z-10 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 pointer-events-auto">
         <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-md">
           <Navigation className="w-5 h-5 animate-pulse" />
@@ -270,12 +254,11 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
           <h4 className="font-black text-slate-900 text-xs leading-none uppercase tracking-wider">{dayTitle}</h4>
           <p className="text-[10px] font-bold text-indigo-600 mt-1 flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-indigo-500" />
-            <span>{waypoints.length} Tappe Coerenti con l'Itinerario Generato</span>
+            <span>{waypoints.length} Tappe del Giorno</span>
           </p>
         </div>
       </div>
 
-      {/* Bottom Waypoint Selector Bar */}
       <div className="absolute bottom-4 left-4 right-4 z-10 flex gap-2 overflow-x-auto pb-1 no-scrollbar pointer-events-auto">
         {waypoints.map((wp, idx) => (
           <button

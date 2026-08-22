@@ -960,21 +960,7 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
 
             <SummaryCard text={plan.text} preferences={preferences} />
 
-      {/* ??? MAPPA MASTER DELL'ITINERARIO REALE GENERATO */}
-      {structuredDays && structuredDays.length > 0 && (
-        <div className="mb-10 animate-fade-in">
-          <ItineraryRouteMap
-            waypoints={structuredDays.flatMap(d => d.activities).map(a => ({
-              title: a.title,
-              visualLine: a.visualLine
-            }))}
-            familyAvatarUrl={preferences?.children?.[0]?.avatarUrl || preferences?.adultsData?.[0]?.avatarUrl}
-            dayTitle="Mappa Generale Weekend Avventura"
-            baseCity={preferences.manualLocation || 'Italia'}
-          />
-        </div>
-      )}
-
+      
       
       {/* ?? TIMELINE METEO ORARIA DINAMICA */}
       <HourlyWeatherTimeline
