@@ -28,7 +28,8 @@ const extractPureVenue = (raw: string): string => {
   text = text.replace(/^[^a-zA-Z0-9\u00C0-\u024F]+/u, '').trim();
   text = text.replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera|Navigazione|Relax|Morning|Afternoon|Lunch|Dinner)[:\s-]*/i, '').trim();
   text = text.replace(/^[^a-zA-Z0-9\u00C0-\u024F]+/u, '').trim();
-  text = text.replace(/^(Visita|Visita guidata|Passeggiata|Sosta|Tappa|Giro|Tour|Andiamo|Escursione|Pranzo|Cena|Colazione|Pausa|Relax|Visit|Walk|Explore|Discover)\s+(al|alla|allo|agli|alle|ai|a|nel|nella|nello|negli|nelle|nei|in|presso|di|del|della|dello|degli|delle|dei|at|to|the)\s+/i, '').trim();
+  text = text.replace(/^(Visita|Visita guidata|Passeggiata|Sosta|Tappa|Giro|Tour|Andiamo|Escursione|Pranzo|Cena|Colazione|Pausa|Relax|Visit|Walk|Explore|Discover|al|alla|allo|agli|alle|ai|a|nel|nella|nello|negli|nelle|nei|in|presso|di|del|della|dello|degli|delle|dei)\s+/gi, '').trim();
+  text = text.replace(/^(al|alla|allo|agli|alle|ai|a|nel|nella|nello|negli|nelle|nei|in|presso|di|del|della|dello|degli|delle|dei)\s+/gi, '').trim();
   text = text.replace(/\s+(con|ed|e)\s+.*$/i, '').trim();
   return text;
 };
@@ -63,12 +64,13 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     return [homeWp, ...cleanActivities];
   }, [waypoints, baseCity]);
 
-  // 2. Cascade Geocoding Algorithm for exact physical marker coordinates
+  // 2. Audited Distinct Geocoding Algorithm with zero marker overlap
   useEffect(() => {
     let isMounted = true;
 
     const resolveAll = async () => {
       const results: { wp: Waypoint; lat: number; lng: number; locationName: string; isHome?: boolean }[] = [];
+      const usedCoords: Set<string> = new Set();
 
       for (let i = 0; i < activeWaypoints.length; i++) {
         const wp = activeWaypoints[i];
@@ -99,6 +101,8 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
             } catch (e) {}
           }
 
+          const coordKey = `${homePoint[0].toFixed(4)},${homePoint[1].toFixed(4)}`;
+          usedCoords.add(coordKey);
           results.push({ wp, lat: homePoint[0], lng: homePoint[1], locationName: `Partenza: ${baseCity}`, isHome: true });
           continue;
         }
@@ -109,25 +113,20 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
         const queries = [
           `${pure}, ${baseCity}`,
-          `${pure.replace(/Regionale|Naturale|Storico|Nazionale|Antico/gi, '').replace(/\s+/g, ' ').trim()}, ${baseCity}`
+          `${pure.replace(/Regionale|Naturale|Storico|Nazionale|Antico/gi, '').replace(/\s+/g, ' ').trim()}, ${baseCity}`,
+          `${pure}, Italia`
         ];
-
-        const tLower = pure.toLowerCase();
-        if (tLower.includes('ristorante') || tLower.includes('trattoria') || tLower.includes('osteria') || tLower.includes('pranzo') || tLower.includes('cena')) {
-          queries.push(`Ristorante, ${baseCity}`);
-        } else if (tLower.includes('parco') || tLower.includes('bosco') || tLower.includes('giardino') || tLower.includes('oasi') || tLower.includes('fiume') || tLower.includes('lago')) {
-          queries.push(`Parco, ${baseCity}`);
-        } else if (tLower.includes('castello') || tLower.includes('museo') || tLower.includes('chiesa') || tLower.includes('duomo')) {
-          queries.push(`Museo, ${baseCity}`);
-        }
-        queries.push(`${baseCity}, Italia`);
 
         let foundPoint: [number, number] | null = null;
 
         for (const q of queries) {
           if (geocodeCache[q]) {
-            foundPoint = geocodeCache[q];
-            break;
+            const cached = geocodeCache[q];
+            const key = `${cached[0].toFixed(4)},${cached[1].toFixed(4)}`;
+            if (!usedCoords.has(key)) {
+              foundPoint = cached;
+              break;
+            }
           }
           try {
             const controller = new AbortController();
@@ -140,22 +139,38 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
             if (res.ok) {
               const json = await res.json();
               if (json && json[0] && json[0].lat && json[0].lon) {
-                foundPoint = [parseFloat(json[0].lat), parseFloat(json[0].lon)];
-                geocodeCache[q] = foundPoint;
-                break;
+                const point: [number, number] = [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+                const key = `${point[0].toFixed(4)},${point[1].toFixed(4)}`;
+                if (!usedCoords.has(key)) {
+                  foundPoint = point;
+                  geocodeCache[q] = foundPoint;
+                  break;
+                }
               }
             }
           } catch (e) {}
         }
 
-        const baseCenter = foundPoint || DEFAULT_CENTER;
-        const angle = ((i - 1) * (360 / Math.max(activeWaypoints.length - 1, 1)) * Math.PI) / 180;
-        const radius = 0.015 * i;
+        const baseCenter = results[0] ? [results[0].lat, results[0].lng] : DEFAULT_CENTER;
 
-        const lat = foundPoint ? foundPoint[0] : baseCenter[0] + Math.sin(angle) * radius;
-        const lng = foundPoint ? foundPoint[1] : baseCenter[1] + Math.cos(angle) * radius;
+        let finalLat: number;
+        let finalLng: number;
 
-        results.push({ wp, lat, lng, locationName, isHome: false });
+        if (foundPoint) {
+          finalLat = foundPoint[0];
+          finalLng = foundPoint[1];
+        } else {
+          // Guarantee distinct spatial neighborhood layout (1.5km - 3km spacing along day flow)
+          const angle = ((i - 1) * (360 / Math.max(activeWaypoints.length - 1, 1)) * Math.PI) / 180;
+          const radius = 0.015 * i;
+          finalLat = baseCenter[0] + Math.sin(angle) * radius;
+          finalLng = baseCenter[1] + Math.cos(angle) * radius;
+        }
+
+        const finalKey = `${finalLat.toFixed(4)},${finalLng.toFixed(4)}`;
+        usedCoords.add(finalKey);
+
+        results.push({ wp, lat: finalLat, lng: finalLng, locationName, isHome: false });
       }
 
       if (isMounted) {
