@@ -16,14 +16,14 @@ interface TimeSlotWeather {
 }
 
 const getSmartAdvice = (icon: string, tempNum: number): { text: string; icon: any; color: string } => {
-  if (icon.includes('???') || icon.includes('??') || icon.includes('??')) {
+  if (icon.includes('🌧') || icon.includes('☔') || icon.includes('Rain') || icon.includes('Pioggia')) {
     return {
-      text: 'Ombrello leggero e giacca impermeabile obbligatori per i bambini.',
+      text: 'Ombrello leggero e giacca impermeabile consigliati per i bambini.',
       icon: Umbrella,
       color: 'bg-indigo-50 border-indigo-200 text-indigo-800'
     };
   }
-  if (tempNum >= 22 || icon.includes('??')) {
+  if (tempNum >= 22 || icon.includes('☀') || icon.includes('Sole')) {
     return {
       text: 'Sole piacevole: consigliati cappellino, occhiali da sole e borraccia.',
       icon: Sun,
@@ -45,23 +45,22 @@ const getSmartAdvice = (icon: string, tempNum: number): { text: string; icon: an
 };
 
 export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({ dayName, meteoLine }) => {
-  // Parse meteo format: DAY|MORNING_ICON|TEMP|AFTERNOON_ICON|TEMP|NIGHT_ICON|TEMP
-  let morningIcon = '??';
-  let morningTemp = '20�';
-  let afternoonIcon = '?';
-  let afternoonTemp = '22�';
-  let nightIcon = '??';
-  let nightTemp = '16�';
+  let morningIcon = '☀️';
+  let morningTemp = '20�C';
+  let afternoonIcon = '⛅';
+  let afternoonTemp = '22�C';
+  let nightIcon = '🌙';
+  let nightTemp = '16�C';
 
   if (meteoLine && meteoLine.includes('|')) {
     const parts = meteoLine.split('|').map(p => p.trim());
     if (parts.length >= 7) {
       morningIcon = parts[1] || morningIcon;
-      morningTemp = parts[2] || morningTemp;
+      morningTemp = (parts[2] || morningTemp).replace('C', '�C');
       afternoonIcon = parts[3] || afternoonIcon;
-      afternoonTemp = parts[4] || afternoonTemp;
+      afternoonTemp = (parts[4] || afternoonTemp).replace('C', '�C');
       nightIcon = parts[5] || nightIcon;
-      nightTemp = parts[6] || nightTemp;
+      nightTemp = (parts[6] || nightTemp).replace('C', '�C');
     }
   }
 
@@ -74,7 +73,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({ da
       time: '09:00 - 12:00',
       temp: morningTemp,
       icon: morningIcon,
-      condition: morningIcon.includes('??') ? 'Soleggiato' : morningIcon.includes('???') ? 'Pioggia' : 'Variabile',
+      condition: 'Soleggiato',
       advice: getSmartAdvice(morningIcon, morningTempNum).text
     },
     {
@@ -82,7 +81,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({ da
       time: '12:30 - 18:00',
       temp: afternoonTemp,
       icon: afternoonIcon,
-      condition: afternoonIcon.includes('??') ? 'Sole Caldo' : afternoonIcon.includes('???') ? 'Pioggia' : 'Piacevole',
+      condition: 'Piacevole',
       advice: getSmartAdvice(afternoonIcon, afternoonTempNum).text
     },
     {
@@ -100,7 +99,6 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({ da
 
   return (
     <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-100 mb-8">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-amber-100 text-amber-600 rounded-2xl">
@@ -117,7 +115,6 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({ da
         </div>
       </div>
 
-      {/* 3 Hourly Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {slots.map((s, idx) => (
           <div
@@ -133,7 +130,6 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({ da
         ))}
       </div>
 
-      {/* Smart Advice Banner */}
       <div className={`p-4 rounded-2xl border flex items-center gap-3.5 ${overallAdvice.color}`}>
         <div className="p-2 rounded-xl bg-white/80 shadow-sm shrink-0">
           <AdviceIcon className="w-5 h-5" />

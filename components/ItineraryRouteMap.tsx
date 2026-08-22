@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Navigation, MapPin, Compass, Sparkles, Layers } from 'lucide-react';
+import { Navigation, MapPin, Compass, Sparkles } from 'lucide-react';
 
 declare const L: any;
 
@@ -20,9 +20,8 @@ interface ItineraryRouteMapProps {
   baseCity?: string;
 }
 
-const DEFAULT_CENTER: [number, number] = [41.9028, 12.4964]; // Roma
+const DEFAULT_CENTER: [number, number] = [45.4384, 10.9916]; // Verona / Nord Italia
 
-// In-memory cache to prevent redundant geocoding requests
 const geocodeCache: Record<string, [number, number]> = {};
 
 export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
@@ -36,11 +35,50 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const polylineRef = useRef<any>(null);
   const [coords, setCoords] = useState<[number, number][]>([]);
 
-  // Geocode waypoints dynamically using Nominatim OpenStreetMap
+  // 1. Initial Leaflet initialization on mount
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    if (mapInstanceRef.current) {
+      try { mapInstanceRef.current.remove(); } catch(e){}
+      mapInstanceRef.current = null;
+    }
+    if ((mapContainerRef.current as any)._leaflet_id) {
+      delete (mapContainerRef.current as any)._leaflet_id;
+    }
+
+    const map = L.map(mapContainerRef.current, {
+      zoomControl: true,
+      attributionControl: false
+    }).setView(DEFAULT_CENTER, 11);
+
+    mapInstanceRef.current = map;
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd'
+    }).addTo(map);
+
+    // Invalidate size after rendering to prevent grey/white blank spaces
+    setTimeout(() => {
+      if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
+    }, 200);
+
+    return () => {
+      if (mapInstanceRef.current) {
+        try { mapInstanceRef.current.remove(); } catch(e){}
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // 2. Asynchronous geocoding for waypoints
   useEffect(() => {
     let isMounted = true;
+
     const fetchCoords = async () => {
       const resolved: [number, number][] = [];
 
@@ -55,6 +93,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
           .replace(/###s*/, '')
           .replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:s-]*/i, '')
           .replace(/[😀-🛿]/gu, '')
+          .replace(/[|:-]/g, ' ')
           .trim();
 
         const query = `${cleanTitle}, ${baseCity}`;
@@ -66,7 +105,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
         try {
           const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 3000);
+          const timer = setTimeout(() => controller.abort(), 2500);
           const res = await fetch(
             `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
             { signal: controller.signal, headers: { 'User-Agent': 'FamilyWeekendApp/1.0' } }
@@ -83,9 +122,9 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
           }
         } catch (e) {}
 
-        // Fallback offset around default center
+        // Offset fallback around base center
         const angle = (i * (360 / Math.max(waypoints.length, 1)) * Math.PI) / 180;
-        const radius = 0.015 * (i + 1);
+        const radius = 0.02 * (i + 1);
         resolved.push([DEFAULT_CENTER[0] + Math.sin(angle) * radius, DEFAULT_CENTER[1] + Math.cos(angle) * radius]);
       }
 
@@ -96,38 +135,19 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     return () => { isMounted = false; };
   }, [waypoints, baseCity]);
 
-  // Initialize and update active Leaflet Map
+  // 3. Update markers and route polyline when coords ready
   useEffect(() => {
-    if (!mapContainerRef.current || coords.length === 0) return;
+    const map = mapInstanceRef.current;
+    if (!map || coords.length === 0) return;
 
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove();
-      mapInstanceRef.current = null;
-    }
-    if ((mapContainerRef.current as any)._leaflet_id) {
-      delete (mapContainerRef.current as any)._leaflet_id;
-    }
-
-    const center: [number, number] = coords[0] || DEFAULT_CENTER;
-
-    const map = L.map(mapContainerRef.current, {
-      zoomControl: true,
-      attributionControl: false
-    }).setView(center, 13);
-
-    mapInstanceRef.current = map;
-
-    // CARTO Voyager active tiles
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      subdomains: 'abcd'
-    }).addTo(map);
-
+    // Clear previous markers
+    markersRef.current.forEach(m => { try { map.removeLayer(m); } catch(e){} });
     markersRef.current = [];
+    if (polylineRef.current) { try { map.removeLayer(polylineRef.current); } catch(e){} }
 
-    // Polyline connecting route
+    // Draw route polyline
     if (coords.length > 1) {
-      const polyline = L.polyline(coords, {
+      polylineRef.current = L.polyline(coords, {
         color: '#4f46e5',
         weight: 5,
         opacity: 0.85,
@@ -135,10 +155,12 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
         lineCap: 'round'
       }).addTo(map);
 
-      map.fitBounds(polyline.getBounds(), { padding: [45, 45] });
+      map.fitBounds(polylineRef.current.getBounds(), { padding: [40, 40] });
+    } else {
+      map.setView(coords[0], 13);
     }
 
-    // Add active 3D Pixar Avatar markers
+    // Add animated 3D Pixar avatar markers
     coords.forEach((coord, idx) => {
       const wp = waypoints[idx];
       const isSelected = idx === selectedIndex;
@@ -152,7 +174,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
               ${idx + 1}
             </div>
           </div>
-          <div class="mt-1 px-2.5 py-1 bg-slate-900/90 text-white text-[10px] font-bold rounded-lg shadow-md whitespace-nowrap text-center max-w-[130px] truncate border border-white/20">
+          <div class="mt-1 px-2.5 py-1 bg-slate-900/95 text-white text-[10px] font-bold rounded-lg shadow-md whitespace-nowrap text-center max-w-[130px] truncate border border-white/20">
             ${wp.title.replace(/###\s*/, '').substring(0, 20)}
           </div>
         </div>
@@ -182,24 +204,19 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
       markersRef.current.push(marker);
     });
 
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
+    map.invalidateSize();
   }, [coords, waypoints, familyAvatarUrl, selectedIndex]);
 
-  // Smooth pan to selected index
+  // Smooth pan on index select
   useEffect(() => {
     if (!mapInstanceRef.current || !coords[selectedIndex]) return;
     mapInstanceRef.current.panTo(coords[selectedIndex], { animate: true, duration: 0.8 });
   }, [selectedIndex, coords]);
 
   return (
-    <div className="relative w-full h-[300px] sm:h-[360px] rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-xl bg-slate-900 mb-8 group">
-      {/* Active Leaflet Map Container */}
-      <div ref={mapContainerRef} className="w-full h-full z-0" />
+    <div className="relative w-full h-[320px] sm:h-[360px] rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-xl bg-slate-900 mb-8 group">
+      {/* Active Leaflet Map Container with explicit min-height */}
+      <div ref={mapContainerRef} className="w-full h-full min-h-[320px] z-0" />
 
       {/* Floating Header */}
       <div className="absolute top-4 left-4 z-10 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-lg border border-slate-100 flex items-center gap-3 pointer-events-auto">
