@@ -3,23 +3,32 @@ import { GoogleGenAI } from "@google/genai";
 export const config = { maxDuration: 60 };
 export const maxDuration = 60;
 
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { action, payload, userKey, metadata } = req.body;
+    const { action, payload, userKey, metadata } = req.body || {};
 
     const fallbackKey = process.env.FALLBACK_GEMINI_API_KEY || '';
     const serverKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.API_KEY || fallbackKey;
-    const apiKey = (userKey && userKey.trim().length > 0) ? userKey.trim() : serverKey;
+    const apiKey = (userKey && typeof userKey === 'string' && userKey.trim().length > 0) ? userKey.trim() : serverKey;
 
-    if (!apiKey) {
-      return res.status(500).json({ error: 'API_KEY_REQUIRED' });
+    if (!apiKey || apiKey.trim().length === 0) {
+      return res.status(400).json({ error: 'API_KEY_REQUIRED', message: 'Chiave API Gemini richiesta. Inserisci la tua API Key nelle Impostazioni.' });
     }
 
-    let finalPayload = payload;
+    let finalPayload = payload || {};
     if (action === 'generateContent' && metadata) {
         let contextString = "\n\n--- REAL-TIME CONTEXT DATA ---\n";
         if (metadata.lat && metadata.lon) {
@@ -49,23 +58,24 @@ export default async function handler(req, res) {
     switch (action) {
       case 'generateContent': {
         let payloadToUse = finalPayload;
-        if (payloadToUse.model === 'gemini-2.5-flash' || !payloadToUse.model) {
+        if (!payloadToUse.model || payloadToUse.model.includes('gemini-2.5') || payloadToUse.model.includes('gemini-3.6')) {
             payloadToUse = { ...payloadToUse, model: 'gemini-2.0-flash' };
         }
         try {
             const response = await ai.models.generateContent(payloadToUse);
-            return res.status(200).json(response);
+            const text = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+            return res.status(200).json({ text, candidates: response.candidates, groundingChunks });
         } catch (mErr: any) {
-            if (mErr.message?.includes('not found') || mErr.message?.includes('not available') || mErr.message?.includes('404')) {
-                console.warn("Primary model failed, retrying with gemini-1.5-flash fallback...");
-                payloadToUse = { ...payloadToUse, model: 'gemini-1.5-flash' };
-                const response = await ai.models.generateContent(payloadToUse);
-                return res.status(200).json(response);
-            }
-            throw mErr;
+            console.warn("Primary model gemini-2.0-flash failed in api/gemini, trying fallback gemini-1.5-flash...", mErr);
+            payloadToUse = { ...payloadToUse, model: 'gemini-1.5-flash' };
+            const response = await ai.models.generateContent(payloadToUse);
+            const text = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+            return res.status(200).json({ text, candidates: response.candidates, groundingChunks });
         }
       }
-
+      
       case 'generateVideos': {
         const operation = await ai.models.generateVideos(payload);
         return res.status(200).json(operation);
@@ -85,4 +95,4 @@ export default async function handler(req, res) {
     const status = isQuota ? 429 : 500;
     return res.status(status).json({ error: error.message || 'Internal Server Error' });
   }
-}
+};
