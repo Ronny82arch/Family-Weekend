@@ -77,7 +77,7 @@ export const generateWelcomeAudio = async (): Promise<string> => {
     const ai = getGenAIClient();
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: "gemini-3.5-flash-lite",
             contents: [{ parts: [{ text: "Say with high energy and child-friendly enthusiasm: Ehi, ehi, ehi! Siete pronti? Costruiamo i vostri ricordi insieme." }] }],
             config: {
                 responseModalities: [Modality.AUDIO],
@@ -107,7 +107,7 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
   }
 
   // Use gemini-3.6-flash for maps grounding support
-  const model = 'gemini-2.0-flash'; 
+  const model = 'gemini-3.5-flash-lite'; 
   const langName = getLanguageName(prefs.language);
   const terms = getLocalizedTerms(prefs.language);
 
@@ -305,7 +305,7 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
   return retryWithBackoff(async () => {
       try {
         const response = await ai.models.generateContent({
-          model: 'gemini-2.0-flash',
+          model: 'gemini-3.5-flash-lite',
           contents: { parts: [{ text: prompt }] },
         });
 
@@ -318,17 +318,17 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
         return { text, groundingChunks };
       } catch (error: any) {
         console.error("Gemini Plan Error:", error);
+        if (error.message === 'API_KEY_REQUIRED' || error.message?.includes('API_KEY_REQUIRED') || error.message?.includes('API key') || error.message?.includes('API_KEY') || error.status === 400 || error.status === 403) {
+            throw new Error("API_KEY_REQUIRED");
+        }
         if (error.message?.includes("not found") || error.message?.includes("404") || error.status === 404) {
-            console.warn("Retrying with gemini-2.0-flash-lite...");
+            console.warn("Retrying with gemini-3.5-flash-lite...");
             const fallbackRes = await ai.models.generateContent({
-              model: 'gemini-2.0-flash-lite',
+              model: 'gemini-3.5-flash-lite',
               contents: { parts: [{ text: prompt }] },
             });
             const text = fallbackRes.text || fallbackRes.candidates?.[0]?.content?.parts?.[0]?.text || "";
             return { text, groundingChunks: [] };
-        }
-        if (error.message?.includes("Requested entity was not found") || error.message === 'API_KEY_REQUIRED') {
-            throw new Error("API_KEY_REQUIRED");
         }
         throw error;
       }
@@ -340,7 +340,7 @@ export const generateStoryAudio = async (text: string): Promise<string> => {
     return retryWithBackoff(async () => {
         try {
             const response = await ai.models.generateContent({
-                model: "gemini-2.0-flash",
+                model: "gemini-3.5-flash-lite",
                 contents: { parts: [{ text: `Say cheerfully: Narra questa storia per bambini con tono magico: ${text}` }] },
                 config: {
                     responseModalities: [Modality.AUDIO],
@@ -373,7 +373,7 @@ export const generateCertificateImage = async (base64Avatar: string, levelTitle:
     return retryWithBackoff(async () => {
         try {
             const response = await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-3.5-flash-lite',
                 contents: { 
                     parts: [
                         { inlineData: { data: base64Avatar, mimeType: 'image/png' } },
@@ -453,7 +453,7 @@ export const sendTripChatMessage = async (planText: string, history: ChatMessage
             const contextPrompt = `Contesto viaggio:\n${planText}\n\nCronologia chat:\n${historyText}\n\nNuovo messaggio da rispondere: ${userMessage}`;
             
             const response = await ai.models.generateContent({
-                model: "gemini-2.0-flash",
+                model: "gemini-3.5-flash-lite",
                 contents: { parts: [{ text: contextPrompt }] },
                 config: { tools: [{ googleMaps: {} }, { googleSearch: {} }] }
             });
@@ -467,7 +467,7 @@ export const generateRainAlternatives = async (planText: string): Promise<string
     return retryWithBackoff(async () => {
         try {
             const response = await ai.models.generateContent({
-                model: "gemini-2.0-flash",
+                model: "gemini-3.5-flash-lite",
                 contents: { parts: [{ text: `Il piano originale era: ${planText}. PIOVE! Trova 3 alternative al chiuso nelle vicinanze usando Google Maps.` }] },
                 config: { tools: [{ googleMaps: {} }] }
             });
@@ -480,7 +480,7 @@ export const analyzeAvatarPhoto = async (base64: string, mimeType = 'image/jpeg'
   const ai = getGenAIClient();
   try {
       const response = await ai.models.generateContent({
-          model: "gemini-2.0-flash",
+          model: "gemini-3.5-flash-lite",
           contents: { parts: [
               { inlineData: { data: base64, mimeType: mimeType } },
               { text: "Analizza il volto per configurare un avatar 3D. Ritorna JSON con: gender, hairColor, hairStyle, skinColor, glasses." }
@@ -598,7 +598,7 @@ export const getCityFromCoordinates = async (lat: number, lon: number): Promise<
     try {
         const ai = getGenAIClient();
         const response = await ai.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: "gemini-3.5-flash-lite",
             contents: { parts: [{ text: `Identifica la citt� o comune per le coordinate: ${lat}, ${lon}. Ritorna SOLO il nome della citt� in italiano.` }] },
         });
         const name = response.text?.trim().replace(/^["']|["']$/g, '');
