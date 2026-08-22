@@ -1026,6 +1026,10 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
                             familyAvatarUrl={preferences?.children?.[0]?.avatarUrl || preferences?.adultsData?.[0]?.avatarUrl}
                             dayTitle={`Mappa Percorso - ${day.title}`}
                             baseCity={preferences.manualLocation || 'Italia'}
+                            onSelectWaypoint={(wIdx) => {
+                              const el = document.getElementById(`activity-card-${idx}-${wIdx}`);
+                              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }}
                           />
                         </div>
 

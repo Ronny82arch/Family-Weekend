@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Navigation, MapPin, Compass, Sparkles } from 'lucide-react';
+import { Navigation, MapPin, Compass, Sparkles, ExternalLink } from 'lucide-react';
 
 interface Waypoint {
   title: string;
@@ -35,33 +35,36 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
   const markersGroupRef = useRef<any>(null);
   const polylineRef = useRef<any>(null);
 
-  const [resolvedCoords, setResolvedCoords] = useState<{ wp: Waypoint; lat: number; lng: number }[]>([]);
+  const [resolvedCoords, setResolvedCoords] = useState<{ wp: Waypoint; lat: number; lng: number; locationName: string }[]>([]);
 
   useEffect(() => {
     let isMounted = true;
 
     const resolveWaypoints = async () => {
-      const results: { wp: Waypoint; lat: number; lng: number }[] = [];
+      const results: { wp: Waypoint; lat: number; lng: number; locationName: string }[] = [];
 
       for (let i = 0; i < waypoints.length; i++) {
         const wp = waypoints[i];
-        if (wp.lat && wp.lng && !isNaN(wp.lat) && !isNaN(wp.lng)) {
-          results.push({ wp, lat: wp.lat, lng: wp.lng });
-          continue;
-        }
-
-        const cleanTitle = wp.title
+        
+        // Extract clean place name from title
+        let locationName = wp.title
           .replace(/###\s*/, '')
           .replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '')
           .replace(/[\u{1F600}-\u{1F6FF}]/gu, '')
+          .replace(/\*\*/g, '')
           .replace(/[|:-]/g, ' ')
           .trim();
 
-        const query = `${cleanTitle}, ${baseCity}`;
+        if (wp.lat && wp.lng && !isNaN(wp.lat) && !isNaN(wp.lng)) {
+          results.push({ wp, lat: wp.lat, lng: wp.lng, locationName });
+          continue;
+        }
+
+        const query = `${locationName}, ${baseCity}`;
 
         if (geocodeCache[query]) {
           const [lat, lng] = geocodeCache[query];
-          results.push({ wp, lat, lng });
+          results.push({ wp, lat, lng, locationName });
           continue;
         }
 
@@ -79,7 +82,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
               const lat = parseFloat(json[0].lat);
               const lng = parseFloat(json[0].lon);
               geocodeCache[query] = [lat, lng];
-              results.push({ wp, lat, lng });
+              results.push({ wp, lat, lng, locationName });
               continue;
             }
           }
@@ -90,7 +93,8 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
         results.push({
           wp,
           lat: DEFAULT_CENTER[0] + Math.sin(angle) * radius,
-          lng: DEFAULT_CENTER[1] + Math.cos(angle) * radius
+          lng: DEFAULT_CENTER[1] + Math.cos(angle) * radius,
+          locationName
         });
       }
 
@@ -174,11 +178,9 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
       resolvedCoords.forEach((c, idx) => {
         const isSelected = idx === selectedIndex;
         const avatarSrc = familyAvatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=family';
-        const titleClean = c.wp.title.replace(/###\s*/, '').replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '').trim();
 
-        // Safe Unicode Escapes for Category Icons (No ?? corruption)
         let categoryEmoji = '\u{1F4CD}';
-        const tLower = titleClean.toLowerCase();
+        const tLower = c.locationName.toLowerCase();
         if (tLower.match(/pranzo|cena|ristorante|trattoria|osteria|pizzeria/)) categoryEmoji = '\u{1F37D}';
         else if (tLower.match(/parco|bosco|giardino|natura|oasi|fiume|lago/)) categoryEmoji = '\u{1F333}';
         else if (tLower.match(/castello|rocca|palazzo|museo|mostra/)) categoryEmoji = '\u{1F3F0}';
@@ -193,7 +195,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
             </div>
             <div class="mt-1 px-2.5 py-1 bg-slate-900/95 text-white text-[10px] font-bold rounded-lg shadow-md whitespace-nowrap text-center max-w-[140px] truncate border border-white/20 flex items-center gap-1">
               <span>${categoryEmoji}</span>
-              <span class="truncate">${titleClean}</span>
+              <span class="truncate">${c.locationName}</span>
             </div>
           </div>
         `;
@@ -207,10 +209,15 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
         const marker = L.marker([c.lat, c.lng], { icon: customIcon }).addTo(markersGroupRef.current);
 
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.locationName + ', ' + baseCity)}`;
+
         const popupContent = `
-          <div class="p-2 text-center">
+          <div class="p-3 text-center">
             <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest block">Tappa ${idx + 1}</span>
-            <h4 class="font-bold text-slate-900 text-sm mt-0.5">${titleClean}</h4>
+            <h4 class="font-bold text-slate-900 text-sm mt-1 mb-2">${c.locationName}</h4>
+            <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="inline-block px-3 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full shadow hover:bg-indigo-700 transition-colors">
+              Apri in Google Maps ?
+            </a>
           </div>
         `;
         marker.bindPopup(popupContent);
@@ -234,7 +241,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     } catch (e) {
       console.error("Error setting map markers:", e);
     }
-  }, [resolvedCoords, selectedIndex, familyAvatarUrl]);
+  }, [resolvedCoords, selectedIndex, familyAvatarUrl, baseCity]);
 
   useEffect(() => {
     if (!mapInstanceRef.current || !resolvedCoords[selectedIndex]) return;
@@ -254,7 +261,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
           <h4 className="font-black text-slate-900 text-xs leading-none uppercase tracking-wider">{dayTitle}</h4>
           <p className="text-[10px] font-bold text-indigo-600 mt-1 flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-indigo-500" />
-            <span>{waypoints.length} Tappe del Giorno</span>
+            <span>{waypoints.length} Tappe Reali dell'Itinerario</span>
           </p>
         </div>
       </div>
