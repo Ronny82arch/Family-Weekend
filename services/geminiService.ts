@@ -73,11 +73,53 @@ export const getGenAIClient = (): GoogleGenAI => {
   return new GoogleGenAI({ apiKey });
 };
 
+export const callGeminiApi = async (action: string, payload: any, metadata?: any): Promise<any> => {
+  const userKey = getApiKey();
+
+  // 1. Try Vercel Serverless Function /api/gemini
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 55000);
+    const res = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, payload, userKey, metadata }),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+
+    if (res.ok) {
+      const data = await res.json();
+      return data;
+    } else {
+      const errJson = await res.json().catch(() => ({}));
+      if (errJson.error === 'API_KEY_REQUIRED' && !userKey) {
+        throw new Error('API_KEY_REQUIRED');
+      } else if (errJson.error) {
+        console.warn('/api/gemini returned error:', errJson.error);
+        if (errJson.error.includes('API_KEY') || errJson.error.includes('key')) {
+          throw new Error('API_KEY_REQUIRED');
+        }
+      }
+    }
+  } catch (e: any) {
+    if (e.message === 'API_KEY_REQUIRED') throw e;
+    console.warn("Call to /api/gemini failed or not on Vercel backend, trying client SDK fallback...", e);
+  }
+
+  // 2. Direct Client SDK Fallback (if user API key exists)
+  const ai = getGenAIClient();
+  if (action === 'generateContent') {
+    return await ai.models.generateContent(payload);
+  }
+  throw new Error("API_KEY_REQUIRED");
+};
+
 export const generateWelcomeAudio = async (): Promise<string> => {
     const ai = getGenAIClient();
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-preview-tts",
+            model: "gemini-3.6-flash",
             contents: [{ parts: [{ text: "Say with high energy and child-friendly enthusiasm: Ehi, ehi, ehi! Siete pronti? Costruiamo i vostri ricordi insieme." }] }],
             config: {
                 responseModalities: [Modality.AUDIO],
@@ -106,8 +148,8 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     throw new Error("Location required / Posizione richiesta.");
   }
 
-  // Use gemini-2.5-flash for maps grounding support
-  const model = 'gemini-2.5-flash'; 
+  // Use gemini-3.6-flash for maps grounding support
+  const model = 'gemini-3.6-flash'; 
   const langName = getLanguageName(prefs.language);
   const terms = getLocalizedTerms(prefs.language);
 
@@ -304,18 +346,22 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
 
   return retryWithBackoff(async () => {
       try {
-        const response = await ai.models.generateContent({
+        const response = await callGeminiApi('generateContent', {
           model: model,
           contents: { parts: [{ text: prompt }] },
           config: config,
-        });
+        }, { lat: prefs.latitude, lon: prefs.longitude });
 
-        const text = response.text || "";
+        const text = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text || "";
         const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        
+        if (!text || text.trim().length === 0) {
+            throw new Error("L'IA non ha restituito testo. Riprova tra un istante.");
+        }
         return { text, groundingChunks };
       } catch (error: any) {
-        console.error("Gemini Error:", error);
-        if (error.message?.includes("Requested entity was not found")) {
+        console.error("Gemini Plan Error:", error);
+        if (error.message?.includes("Requested entity was not found") || error.message === 'API_KEY_REQUIRED') {
             throw new Error("API_KEY_REQUIRED");
         }
         throw error;
@@ -324,11 +370,10 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
 };
 
 export const generateStoryAudio = async (text: string): Promise<string> => {
-    const ai = getGenAIClient();
     return retryWithBackoff(async () => {
         try {
-            const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash-preview-tts",
+            const response = await callGeminiApi('generateContent', {
+                model: "gemini-3.6-flash",
                 contents: { parts: [{ text: `Say cheerfully: Narra questa storia per bambini con tono magico: ${text}` }] },
                 config: {
                     responseModalities: [Modality.AUDIO],
@@ -361,7 +406,7 @@ export const generateCertificateImage = async (base64Avatar: string, levelTitle:
     return retryWithBackoff(async () => {
         try {
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash-image',
+                model: 'gemini-3.6-flash',
                 contents: { 
                     parts: [
                         { inlineData: { data: base64Avatar, mimeType: 'image/png' } },
@@ -441,7 +486,7 @@ export const sendTripChatMessage = async (planText: string, history: ChatMessage
             const contextPrompt = `Contesto viaggio:\n${planText}\n\nCronologia chat:\n${historyText}\n\nNuovo messaggio da rispondere: ${userMessage}`;
             
             const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
+                model: "gemini-3.6-flash",
                 contents: { parts: [{ text: contextPrompt }] },
                 config: { tools: [{ googleMaps: {} }, { googleSearch: {} }] }
             });
@@ -455,7 +500,7 @@ export const generateRainAlternatives = async (planText: string): Promise<string
     return retryWithBackoff(async () => {
         try {
             const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
+                model: "gemini-3.6-flash",
                 contents: { parts: [{ text: `Il piano originale era: ${planText}. PIOVE! Trova 3 alternative al chiuso nelle vicinanze usando Google Maps.` }] },
                 config: { tools: [{ googleMaps: {} }] }
             });
