@@ -307,7 +307,6 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
         const response = await ai.models.generateContent({
           model: 'gemini-2.0-flash',
           contents: { parts: [{ text: prompt }] },
-          config: { tools: [{ googleSearch: {} }] }
         });
 
         const text = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text || "";
@@ -319,12 +318,11 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
         return { text, groundingChunks };
       } catch (error: any) {
         console.error("Gemini Plan Error:", error);
-        if (error.message?.includes("not found") || error.message?.includes("404")) {
-            // Fallback to gemini-1.5-flash if gemini-2.0-flash is unavailable
+        if (error.message?.includes("not found") || error.message?.includes("404") || error.status === 404) {
+            console.warn("Retrying with gemini-2.0-flash-lite...");
             const fallbackRes = await ai.models.generateContent({
-              model: 'gemini-1.5-flash',
+              model: 'gemini-2.0-flash-lite',
               contents: { parts: [{ text: prompt }] },
-              config: { tools: [{ googleSearch: {} }] }
             });
             const text = fallbackRes.text || fallbackRes.candidates?.[0]?.content?.parts?.[0]?.text || "";
             return { text, groundingChunks: [] };
