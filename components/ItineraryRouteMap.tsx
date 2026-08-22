@@ -63,7 +63,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     return [homeWp, ...cleanActivities];
   }, [waypoints, baseCity]);
 
-  // 2. Multi-tier Geocoding including Home Origin
+  // 2. Cascade Geocoding Algorithm for exact physical marker coordinates
   useEffect(() => {
     let isMounted = true;
 
@@ -103,25 +103,37 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
           continue;
         }
 
-        // Real Activity Waypoints
-        const pureVenue = extractPureVenue(wp.title) || `Tappa ${i}`;
-        const locationName = pureVenue;
+        // Real Activity Waypoint Cascade Queries
+        const pure = extractPureVenue(wp.title) || `Tappa ${i}`;
+        const locationName = pure;
 
-        const query1 = `${pureVenue}, ${baseCity}`;
-        const query2 = `${pureVenue}, Italia`;
-        const query3 = `${baseCity}, Italia`;
+        const queries = [
+          `${pure}, ${baseCity}`,
+          `${pure.replace(/Regionale|Naturale|Storico|Nazionale|Antico/gi, '').replace(/\s+/g, ' ').trim()}, ${baseCity}`
+        ];
+
+        const tLower = pure.toLowerCase();
+        if (tLower.includes('ristorante') || tLower.includes('trattoria') || tLower.includes('osteria') || tLower.includes('pranzo') || tLower.includes('cena')) {
+          queries.push(`Ristorante, ${baseCity}`);
+        } else if (tLower.includes('parco') || tLower.includes('bosco') || tLower.includes('giardino') || tLower.includes('oasi') || tLower.includes('fiume') || tLower.includes('lago')) {
+          queries.push(`Parco, ${baseCity}`);
+        } else if (tLower.includes('castello') || tLower.includes('museo') || tLower.includes('chiesa') || tLower.includes('duomo')) {
+          queries.push(`Museo, ${baseCity}`);
+        }
+        queries.push(`${baseCity}, Italia`);
 
         let foundPoint: [number, number] | null = null;
 
-        if (geocodeCache[query1]) foundPoint = geocodeCache[query1];
-
-        // Tier 1: Pure Venue + City
-        if (!foundPoint) {
+        for (const q of queries) {
+          if (geocodeCache[q]) {
+            foundPoint = geocodeCache[q];
+            break;
+          }
           try {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), 2000);
             const res = await fetch(
-              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query1)}&format=json&limit=1`,
+              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
               { signal: controller.signal, headers: { 'User-Agent': 'FamilyWeekendApp/1.0' } }
             );
             clearTimeout(timer);
@@ -129,34 +141,14 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
               const json = await res.json();
               if (json && json[0] && json[0].lat && json[0].lon) {
                 foundPoint = [parseFloat(json[0].lat), parseFloat(json[0].lon)];
-                geocodeCache[query1] = foundPoint;
+                geocodeCache[q] = foundPoint;
+                break;
               }
             }
           } catch (e) {}
         }
 
-        // Tier 2: Pure Venue in Italia
-        if (!foundPoint) {
-          try {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 2000);
-            const res = await fetch(
-              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query2)}&format=json&limit=1`,
-              { signal: controller.signal, headers: { 'User-Agent': 'FamilyWeekendApp/1.0' } }
-            );
-            clearTimeout(timer);
-            if (res.ok) {
-              const json = await res.json();
-              if (json && json[0] && json[0].lat && json[0].lon) {
-                foundPoint = [parseFloat(json[0].lat), parseFloat(json[0].lon)];
-                geocodeCache[query2] = foundPoint;
-              }
-            }
-          } catch (e) {}
-        }
-
-        // Tier 3: Spatial Distribution around City Center
-        const baseCenter = foundPoint || geocodeCache[query3] || DEFAULT_CENTER;
+        const baseCenter = foundPoint || DEFAULT_CENTER;
         const angle = ((i - 1) * (360 / Math.max(activeWaypoints.length - 1, 1)) * Math.PI) / 180;
         const radius = 0.015 * i;
 
@@ -233,7 +225,6 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
       const points: [number, number][] = resolvedCoords.map(c => [c.lat, c.lng]);
       const bounds = L.latLngBounds(points);
 
-      // Route line connecting Home (Tappa 0) -> Tappa 1 -> Tappa 2 -> Tappa 3
       if (points.length > 1) {
         polylineRef.current = L.polyline(points, {
           color: '#4f46e5',
@@ -250,7 +241,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
         let categoryEmoji = '\u{1F4CD}';
         if (c.isHome) {
-          categoryEmoji = '\u{1F3E0}'; // House
+          categoryEmoji = '\u{1F3E0}';
         } else {
           const tLower = c.locationName.toLowerCase();
           if (tLower.match(/pranzo|cena|ristorante|trattoria|osteria|pizzeria/)) categoryEmoji = '\u{1F37D}';
@@ -284,7 +275,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
         const marker = L.marker([c.lat, c.lng], { icon: customIcon }).addTo(markersGroupRef.current);
 
-        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.locationName)}`;
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.locationName + ', ' + baseCity)}`;
 
         const popupContent = `
           <div class="p-3 text-center">
