@@ -48,10 +48,24 @@ export default async function handler(req, res) {
 
     switch (action) {
       case 'generateContent': {
-        const response = await ai.models.generateContent(finalPayload);
-        return res.status(200).json(response);
+        let payloadToUse = finalPayload;
+        if (payloadToUse.model === 'gemini-2.5-flash' || !payloadToUse.model) {
+            payloadToUse = { ...payloadToUse, model: 'gemini-2.0-flash' };
+        }
+        try {
+            const response = await ai.models.generateContent(payloadToUse);
+            return res.status(200).json(response);
+        } catch (mErr: any) {
+            if (mErr.message?.includes('not found') || mErr.message?.includes('not available') || mErr.message?.includes('404')) {
+                console.warn("Primary model failed, retrying with gemini-1.5-flash fallback...");
+                payloadToUse = { ...payloadToUse, model: 'gemini-1.5-flash' };
+                const response = await ai.models.generateContent(payloadToUse);
+                return res.status(200).json(response);
+            }
+            throw mErr;
+        }
       }
-      
+
       case 'generateVideos': {
         const operation = await ai.models.generateVideos(payload);
         return res.status(200).json(operation);
