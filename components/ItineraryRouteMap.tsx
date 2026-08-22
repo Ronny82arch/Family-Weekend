@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Navigation, MapPin, Compass, Sparkles, ExternalLink } from 'lucide-react';
 
 interface Waypoint {
@@ -22,6 +22,15 @@ const DEFAULT_CENTER: [number, number] = [41.9028, 12.4964]; // Roma
 
 const geocodeCache: Record<string, [number, number]> = {};
 
+const cleanLocationTitle = (raw: string): string => {
+  if (!raw) return '';
+  let text = raw.replace(/###/g, '').replace(/\*\*/g, '').replace(/^\s*\d+[\.\)]\s*/, '').trim();
+  text = text.replace(/^[^a-zA-Z0-9\u00C0-\u024F]+/u, '').trim();
+  text = text.replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera|Navigazione|Relax|Morning|Afternoon|Lunch|Dinner)[:\s-]*/i, '').trim();
+  text = text.replace(/^[^a-zA-Z0-9\u00C0-\u024F]+/u, '').trim();
+  return text;
+};
+
 export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
   waypoints,
   familyAvatarUrl,
@@ -37,65 +46,89 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
   const [resolvedCoords, setResolvedCoords] = useState<{ wp: Waypoint; lat: number; lng: number; locationName: string }[]>([]);
 
+  // Filter valid activity waypoints (exclude routine navigation headers)
+  const activeWaypoints = useMemo(() => {
+    return waypoints.filter(wp => {
+      const t = wp.title.toLowerCase();
+      return !t.includes('navigazione') && !t.includes('navigation') && !t.includes('giornata di riposo');
+    });
+  }, [waypoints]);
+
   useEffect(() => {
     let isMounted = true;
 
-    const resolveWaypoints = async () => {
+    const resolveAll = async () => {
       const results: { wp: Waypoint; lat: number; lng: number; locationName: string }[] = [];
 
-      for (let i = 0; i < waypoints.length; i++) {
-        const wp = waypoints[i];
-        
-        // Extract clean place name from title
-        let locationName = wp.title
-          .replace(/###\s*/, '')
-          .replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '')
-          .replace(/[\u{1F600}-\u{1F6FF}]/gu, '')
-          .replace(/\*\*/g, '')
-          .replace(/[|:-]/g, ' ')
-          .trim();
+      for (let i = 0; i < activeWaypoints.length; i++) {
+        const wp = activeWaypoints[i];
+        const locationName = cleanLocationTitle(wp.title) || `Tappa ${i + 1}`;
 
         if (wp.lat && wp.lng && !isNaN(wp.lat) && !isNaN(wp.lng)) {
           results.push({ wp, lat: wp.lat, lng: wp.lng, locationName });
           continue;
         }
 
-        const query = `${locationName}, ${baseCity}`;
+        const query1 = `${locationName}, ${baseCity}`;
+        const query2 = `${baseCity}, Italia`;
 
-        if (geocodeCache[query]) {
-          const [lat, lng] = geocodeCache[query];
+        if (geocodeCache[query1]) {
+          const [lat, lng] = geocodeCache[query1];
           results.push({ wp, lat, lng, locationName });
           continue;
         }
 
+        let foundPoint: [number, number] | null = null;
+
+        // Tier 1: Try specific place + city
         try {
           const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 2500);
+          const timer = setTimeout(() => controller.abort(), 2000);
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query1)}&format=json&limit=1`,
             { signal: controller.signal, headers: { 'User-Agent': 'FamilyWeekendApp/1.0' } }
           );
           clearTimeout(timer);
           if (res.ok) {
             const json = await res.json();
             if (json && json[0] && json[0].lat && json[0].lon) {
-              const lat = parseFloat(json[0].lat);
-              const lng = parseFloat(json[0].lon);
-              geocodeCache[query] = [lat, lng];
-              results.push({ wp, lat, lng, locationName });
-              continue;
+              foundPoint = [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+              geocodeCache[query1] = foundPoint;
             }
           }
         } catch (e) {}
 
-        const angle = (i * (360 / Math.max(waypoints.length, 1)) * Math.PI) / 180;
-        const radius = 0.015 * (i + 1);
-        results.push({
-          wp,
-          lat: DEFAULT_CENTER[0] + Math.sin(angle) * radius,
-          lng: DEFAULT_CENTER[1] + Math.cos(angle) * radius,
-          locationName
-        });
+        // Tier 2: Try city center if specific place failed
+        if (!foundPoint && geocodeCache[query2]) {
+          foundPoint = geocodeCache[query2];
+        } else if (!foundPoint) {
+          try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 2000);
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query2)}&format=json&limit=1`,
+              { signal: controller.signal, headers: { 'User-Agent': 'FamilyWeekendApp/1.0' } }
+            );
+            clearTimeout(timer);
+            if (res.ok) {
+              const json = await res.json();
+              if (json && json[0] && json[0].lat && json[0].lon) {
+                foundPoint = [parseFloat(json[0].lat), parseFloat(json[0].lon)];
+                geocodeCache[query2] = foundPoint;
+              }
+            }
+          } catch (e) {}
+        }
+
+        // Tier 3: Apply spatial distribution offset around base center
+        const baseCenter = foundPoint || DEFAULT_CENTER;
+        const angle = (i * (360 / Math.max(activeWaypoints.length, 1)) * Math.PI) / 180;
+        const radius = 0.012 * (i + 1);
+
+        const lat = baseCenter[0] + Math.sin(angle) * radius;
+        const lng = baseCenter[1] + Math.cos(angle) * radius;
+
+        results.push({ wp, lat, lng, locationName });
       }
 
       if (isMounted) {
@@ -103,10 +136,11 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
       }
     };
 
-    resolveWaypoints();
+    resolveAll();
     return () => { isMounted = false; };
-  }, [waypoints, baseCity]);
+  }, [activeWaypoints, baseCity]);
 
+  // Leaflet map initialization
   useEffect(() => {
     if (!mapRef.current || typeof (window as any).L === 'undefined') return;
     const L = (window as any).L;
@@ -117,12 +151,10 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
     let map: any = null;
     try {
-      const initialCenter: [number, number] = resolvedCoords.length > 0 ? [resolvedCoords[0].lat, resolvedCoords[0].lng] : DEFAULT_CENTER;
-
       map = L.map(mapRef.current, {
         zoomControl: true,
         attributionControl: false
-      }).setView(initialCenter, 12);
+      }).setView(DEFAULT_CENTER, 12);
 
       mapInstanceRef.current = map;
 
@@ -151,6 +183,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     };
   }, []);
 
+  // Update markers, polyline and bounds
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !map._container || resolvedCoords.length === 0 || typeof (window as any).L === 'undefined') return;
@@ -241,7 +274,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
     } catch (e) {
       console.error("Error setting map markers:", e);
     }
-  }, [resolvedCoords, selectedIndex, familyAvatarUrl, baseCity]);
+  }, [resolvedCoords, selectedIndex, familyAvatarUrl, baseCity, onSelectWaypoint]);
 
   useEffect(() => {
     if (!mapInstanceRef.current || !resolvedCoords[selectedIndex]) return;
@@ -261,13 +294,13 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
           <h4 className="font-black text-slate-900 text-xs leading-none uppercase tracking-wider">{dayTitle}</h4>
           <p className="text-[10px] font-bold text-indigo-600 mt-1 flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-indigo-500" />
-            <span>{waypoints.length} Tappe Reali dell'Itinerario</span>
+            <span>{activeWaypoints.length} Tappe Reali Mappate</span>
           </p>
         </div>
       </div>
 
       <div className="absolute bottom-4 left-4 right-4 z-10 flex gap-2 overflow-x-auto pb-1 no-scrollbar pointer-events-auto">
-        {waypoints.map((wp, idx) => (
+        {activeWaypoints.map((wp, idx) => (
           <button
             key={idx}
             onClick={() => onSelectWaypoint && onSelectWaypoint(idx)}
@@ -277,13 +310,13 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
                 : 'bg-white/95 backdrop-blur text-slate-800 hover:bg-white hover:scale-102'
             }`}
           >
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black ${
               idx === selectedIndex ? 'bg-white text-indigo-600' : 'bg-slate-200 text-slate-700'
             }`}>
               {idx + 1}
             </span>
-            <span className="truncate max-w-[130px]">
-              {wp.title.replace(/###\s*/, '').replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '')}
+            <span className="truncate max-w-[140px]">
+              {cleanLocationTitle(wp.title) || `Tappa ${idx + 1}`}
             </span>
           </button>
         ))}
