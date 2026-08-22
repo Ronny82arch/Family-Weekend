@@ -960,6 +960,21 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
 
             <SummaryCard text={plan.text} preferences={preferences} />
 
+      {/* ??? MAPPA MASTER GENERALE DELL'ITINERARIO */}
+      {structuredDays && structuredDays.length > 0 && (
+        <div className="mb-10 animate-fade-in">
+          <ItineraryRouteMap
+            waypoints={structuredDays.flatMap(d => d.activities).map(a => ({
+              title: a.title,
+              visualLine: a.visualLine
+            }))}
+            familyAvatarUrl={preferences?.children?.[0]?.avatarUrl || preferences?.adultsData?.[0]?.avatarUrl}
+            dayTitle="Mappa Generale dell'Itinerario Avventura"
+            baseCity={preferences.manualLocation || 'Italia'}
+          />
+        </div>
+      )}
+
       
       
       {/* ?? TIMELINE METEO ORARIA DINAMICA */}
@@ -1007,23 +1022,25 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 border-b border-slate-100 pb-6 gap-4">
                             <h2 className="font-serif text-5xl font-black text-slate-900">{day.title}</h2>
 
-                        {/* ??? MAPPA ATTIVA SEPARATA PER OGNUNO DEI GIORNI (SABATO / DOMENICA) */}
-                        <div className="mt-6 mb-8 animate-fade-in">
+                        
+                            <div className="flex gap-2">
+                                <SocialShareMenu isCompact title={`Cosa faremo ${day.title}`} text={`Ecco il programma per ${day.title}!`} />
+                                <button onClick={() => onSaveFavorite(day.raw)} className="text-xs font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 px-4 py-2 rounded-lg transition-colors border border-amber-200 flex items-center gap-1"><Star className="w-3 h-3"/> {t.favorite_day}</button>
+                                <button onClick={() => onMarkComplete(day.raw)} className="text-xs font-bold text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg transition-colors border border-indigo-100">{t.save_active}</button>
+                            </div>
+                        </div>
+
+                        {/* ??? MAPPA DEDICATA PER IL GIORNO (SABATO / DOMENICA) */}
+                        <div className="my-8 animate-fade-in">
                           <ItineraryRouteMap
                             waypoints={day.activities.map(a => ({
                               title: a.title,
                               visualLine: a.visualLine
                             }))}
                             familyAvatarUrl={preferences?.children?.[0]?.avatarUrl || preferences?.adultsData?.[0]?.avatarUrl}
-                            dayTitle={`Mappa Attiva Percorso - ${day.title}`}
+                            dayTitle={`Mappa Percorso - ${day.title}`}
                             baseCity={preferences.manualLocation || 'Italia'}
                           />
-                        </div>
-                            <div className="flex gap-2">
-                                <SocialShareMenu isCompact title={`Cosa faremo ${day.title}`} text={`Ecco il programma per ${day.title}!`} />
-                                <button onClick={() => onSaveFavorite(day.raw)} className="text-xs font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 px-4 py-2 rounded-lg transition-colors border border-amber-200 flex items-center gap-1"><Star className="w-3 h-3"/> {t.favorite_day}</button>
-                                <button onClick={() => onMarkComplete(day.raw)} className="text-xs font-bold text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg transition-colors border border-indigo-100">{t.save_active}</button>
-                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4">
