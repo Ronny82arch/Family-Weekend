@@ -124,109 +124,125 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
       if (mode === 'none') {
           return `## ${dayName}
     ### Relax: Giornata di Riposo
-    VISUAL_SCENE: Relaxing home atmosphere or local park
-    Giornata libera per ricaricare le energie. Nessuna attività di viaggio pianificata.`;
+    VISUAL_SCENE: Atmosfera rilassante a casa o nel parco vicino
+    Giornata libera per ricaricare le energie. Nessuna attivit� di viaggio pianificata.`;
       }
       
       let schedule = "";
       let constraints = "";
       
+      const strictNamingRule = `
+      DIVIETO ASSOLUTISSIMO SUI BRACKETS PLACEHOLDER:
+      � SEVERAMENTE VIETATO scrivere "[Titolo Attivit�]", "[Ristorante]" o parole dentro parentesi quadre nei titoli e nei testi.
+      Devi SEMPRE inventare o trovare NOMI REALI E SPECIFICI per ogni luogo ed attivit� (es. "Visita al Castello di Sirmione", "Pranzo alla Trattoria Del Lago", "Passeggiata nel Parco Giardino").
+      OGNI SEZIONE DEVE AVERE ALMENO 2 CORPOSE E DETTAGLIATE FRASI DI DESCRIZIONE (non lasciare mai numeri o righe vuote).
+      `;
+
       // MODE: FULL DAY
       if (mode === 'full_day') {
           constraints = `
+            ${strictNamingRule}
             LOGISTICA: La famiglia parte la mattina e rientra dopo cena.
-            STRUTTURA OBBLIGATORIA (usa esattamente questi titoli):
-            1. ### Mattina: [Titolo Attività]
-            2. ### 🍽️ Pranzo: [Ristorante]
-            3. ### Pomeriggio: [Titolo Attività]
+            STRUTTURA OBBLIGATORIA (usa esattamente questi titoli con nomi reali al posto dei placeholder):
+            1. ### Mattina: [Inserisci Nome Reale Attivit� Mattutina]
+            2. ### ??? Pranzo: [Inserisci Nome Reale Ristorante o Trattoria]
+            3. ### Pomeriggio: [Inserisci Nome Reale Attivit� Pomeridiana]
           `;
           schedule = `
-    ### Mattina: [Titolo Attività]
-    VISUAL_SCENE: [Dettagli per immagine]
-    [Descrizione dettagliata attività mattutina]
+    ### Mattina: Visita Guidata al Castello ed al Borgo Antico
+    VISUAL_SCENE: Un fantastico castello medievale con torri e vista panoramica
+    Passeggiata emozionante tra le antiche mura con racconti storici per bambini, giochi all'aperto e visita panoramica della fortezza.
     
-    ### 🍽️ Pranzo: [Ristorante consigliato]
-    VISUAL_SCENE: [Cibo/Ambiente]
-    [Descrizione menu bambini e atmosfera]
+    ### ??? Pranzo: Trattoria Tipica La Sosta
+    VISUAL_SCENE: Un'accogliente trattoria con tavoli all'aperto e piatti tipici della tradizione
+    Pranzo rilassante con piatti locali fatti in casa, menu speciale dedicato ai pi� piccoli e deliziosi dolci artigianali.
 
-    ### Pomeriggio: [Titolo Attività]
-    VISUAL_SCENE: [Dettagli]
-    [Descrizione dettagliata attività pomeridiana]`;
+    ### Pomeriggio: Parco Avventura e Laboratori nella Natura
+    VISUAL_SCENE: Bambini entusiasti sui percorsi avventura tra gli alberi
+    Pomeriggio pieno di divertimento con percorsi sospesi in sicurezza sui grandi alberi del parco e laboratori didattici per tutta la famiglia.`;
       } 
       
       // MODE: MORNING ONLY
       else if (mode === 'morning') {
           constraints = `
-            ⛔ DIVIETI ASSOLUTI: NON generare sezioni "Pomeriggio" o "Cena".
+            ${strictNamingRule}
+            ? DIVIETI ASSOLUTI: NON generare sezioni "Pomeriggio" o "Cena".
             LOGISTICA: La famiglia parte la mattina e RIENTRA A CASA subito dopo pranzo.
-            STRUTTURA OBBLIGATORIA (usa esattamente questi titoli):
-            1. ### Mattina: [Titolo Attività]
-            2. ### 🍽️ Pranzo: [Ristorante]
+            STRUTTURA OBBLIGATORIA:
+            1. ### Mattina: [Nome Reale Attivit�]
+            2. ### ??? Pranzo: [Nome Reale Ristorante]
             3. STOP. (Non scrivere altro dopo il pranzo).
           `;
           schedule = `
-    ### Mattina: [Titolo Attività]
-    VISUAL_SCENE: [Dettagli per immagine]
-    [Descrizione dettagliata attività mattutina]
+    ### Mattina: Passeggiata nel Parco Naturale ed al Lago
+    VISUAL_SCENE: Un bellissimo parco fiorito con specchi d'acqua e cigni
+    Passeggiata rilassante lungo i sentieri del parco con aree gioco e sosta per osservare gli animali e la natura.
     
-    ### 🍽️ Pranzo: [Ristorante consigliato]
-    VISUAL_SCENE: [Cibo/Ambiente]
-    [Descrizione menu bambini e atmosfera]`;
+    ### ??? Pranzo: Ristorante Il Vigneto
+    VISUAL_SCENE: Piatto di pasta fresca in un giardino panoramico
+    Pranzo di qualit� con prodotti a km zero ed uno spazio giochi sicuro dove i bambini possono giocare liberamente.`;
       } 
       
       // MODE: AFTERNOON ONLY
       else if (mode === 'afternoon') {
           constraints = `
-            ⛔ DIVIETI ASSOLUTI: NON generare sezioni "Mattina".
-            LOGISTICA: La famiglia parte da casa direttamente per pranzo. La mattina è a casa.
-            STRUTTURA OBBLIGATORIA (usa esattamente questi titoli):
-            1. ### 🍽️ Pranzo: [Ristorante]
-            2. ### Pomeriggio: [Titolo Attività]
-            3. ### 🍽️ Cena: [Ristorante/Pizzeria]
+            ${strictNamingRule}
+            ? DIVIETI ASSOLUTI: NON generare sezioni "Mattina".
+            LOGISTICA: La famiglia parte da casa direttamente per pranzo. La mattina � a casa.
+            STRUTTURA OBBLIGATORIA:
+            1. ### ??? Pranzo: [Nome Reale Ristorante]
+            2. ### Pomeriggio: [Nome Reale Attivit�]
+            3. ### ??? Cena: [Nome Reale Pizzeria]
           `;
           schedule = `
-    ### 🍽️ Pranzo: [Ristorante consigliato]
-    VISUAL_SCENE: [Cibo/Ambiente]
-    [Descrizione luogo di ritrovo per pranzo]
+    ### ??? Pranzo: Osteria Del Borgo
+    VISUAL_SCENE: Tavolo in piazza con specialit� locali e atmosfera festosa
+    Pranzo di benvenuto con prodotti tipici e menu bimbi appositamente studiato.
 
-    ### Pomeriggio: [Titolo Attività]
-    VISUAL_SCENE: [Dettagli]
-    [Descrizione dettagliata attività pomeridiana]
+    ### Pomeriggio: Visita al Museo delle Curiosit� ed Aree Gioco
+    VISUAL_SCENE: Interno di un museo interattivo con installazioni per ragazzi
+    Pomeriggio stimolante tra invenzioni, esperimenti scientifici pratici ed installazioni d d'arte interattive.
     
-    ### 🍽️ Cena: [Ristorante/Pizzeria consigliato]
-    VISUAL_SCENE: [Cibo/Ambiente]
-    [Descrizione cena conclusiva]`;
+    ### ??? Cena: Pizzeria Gourmet La Torre
+    VISUAL_SCENE: Fragrante pizza cotta nel forno a legna in un ambiente vivace
+    Cena conviviale in pizzeria con ingredienti selezionati e dolci fatti in casa per concludere in bellezza.`;
       }
 
       return `## ${dayName}
     ${constraints}
     ${schedule}
 
-    ### 🚗 Navigazione ${dayName}
-    VISUAL_SCENE: Road Map
-    [Elenco numerato dei passaggi stradali dettagliati per le tappe sopra indicate]
+    ### ?? Navigazione ${dayName}
+    VISUAL_SCENE: Mappa stradale
+    - **Tappa 1**: Indicazioni stradali per raggiungere la prima destinazione
+    - **Tappa 2**: Spostamento verso il pranzo (durata sotto i 15 minuti)
+    - **Tappa 3**: Rientro o proseguimento pomeridiano
 
     ## ${terms.mission} ${dayName}
     MANDATORIO: Inserisci sempre ALMENO 3 missioni di gioco specifiche per i luoghi visitati.
-    Formato: "* **[Titolo Missione]**: [Descrizione obiettivo divertente]. (🛡️ Sicurezza: [Consiglio pratico])"
+    Formato: "* **[Titolo Missione]**: [Descrizione obiettivo divertente]. (??? Sicurezza: [Consiglio pratico])"
     Ogni missione deve stare su una riga separata che inizia con un asterisco.
 
     ## ${terms.story} ${dayName}
-    [Breve favola della buonanotte legata ai luoghi visitati oggi]
+    Favola della buonanotte legata alle avventure vissute oggi per addormentarsi con un sorriso.
 
     ## ${terms.budget} ${dayName}
-    Fornisci un elenco puntato DETTAGLIATO (usa riga per categoria):
-    - 🍽️ **Ristorazione**: [Stima] €XX
-    - 🎟️ **Ingressi/Attività**: [Costo] €XX
-    - 🚗 **Trasporto**: [Stima] €XX
-    - 🛍️ **Extra**: [Varie] €XX
-    **TOTALE STIMATO PER ${dayName.toUpperCase()}: €XXX**
+    Fornisci un elenco puntato DETTAGLIATO:
+    - ??? **Ristorazione**: Stima �35-50
+    - ??? **Ingressi/Attivit�**: Costo �15-25
+    - ?? **Trasporto**: Stima carburante �10
+    - ??? **Extra**: Varie ed eventuali �10
+    **TOTALE STIMATO PER ${dayName.toUpperCase()}: �80-95**
 
     ## ${terms.transport} ${dayName}
-    [Consigli su parcheggi e spostamenti per le tappe di oggi]
+    Consigli pratici su parcheggi gratuiti o custoditi vicini ai luoghi visitati.
 
     ## ${terms.pack} ${dayName}
-    MANDATORIO: Usa un elenco puntato dove OGNI riga corrisponde a un singolo oggetto specifico utile per le attività di oggi (es. crema solare, scarpe ricambio, ecc).`;
+    MANDATORIO: Usa un elenco puntato dove OGNI riga corrisponde a un singolo oggetto specifico utile per oggi:
+    - Scarpe da ginnastica comode
+    - Borraccia termica d'acqua
+    - Cappellino per il sole
+    - Snack salutari per la merenda`;
   };
 
   const activeDays = [];

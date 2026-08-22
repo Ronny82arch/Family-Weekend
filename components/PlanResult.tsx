@@ -93,107 +93,103 @@ const SocialShareMenu: React.FC<{ title: string, text: string, url?: string, isC
 // --- MASSIVE STOCK LIBRARY (Fail-Safe Images) ---
 // Now expanded with multiple images per category for variety
 const STOCK_LIBRARY: Record<string, string[]> = {
-    pizza: [
-        "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800&q=80",
+    "pizza": [
         "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80",
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80",
-        "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=800&q=80"
+        "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800&q=80",
+        "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=800&q=80",
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80"
     ],
-    restaurant: [
-        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80",
-        "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&q=80",
+    "restaurant": [
         "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
-        "https://images.unsplash.com/photo-1550966871-3ed3c47e2ce2?w=800&q=80"
+        "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80",
+        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80",
+        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80"
     ],
-    breakfast: [
-        "https://images.unsplash.com/photo-1533089862017-5614ec42008d?w=800&q=80",
-        "https://images.unsplash.com/photo-1525351462161-f212f29e4b54?w=800&q=80",
+    "breakfast": [
         "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800&q=80",
-        "https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=800&q=80"
+        "https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=800&q=80",
+        "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=800&q=80"
     ],
-    icecream: [
-        "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=800&q=80",
-        "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=800&q=80",
+    "icecream": [
         "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=800&q=80",
-        "https://images.unsplash.com/photo-1576506295286-5cda18df43e7?w=800&q=80"
+        "https://images.unsplash.com/photo-1576506295286-5cda18df43e7?w=800&q=80",
+        "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=800&q=80",
+        "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=800&q=80"
     ],
-    museum: [
-        "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?w=800&q=80",
-        "https://images.unsplash.com/photo-1518998053901-5348d3969105?w=800&q=80",
+    "museum": [
+        "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=800&q=80",
         "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=800&q=80",
+        "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?w=800&q=80",
         "https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=800&q=80"
     ],
-    art: [
-        "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=800&q=80",
+    "art": [
         "https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=800&q=80",
-        "https://images.unsplash.com/photo-1579783902614-a3fb39279c0f?w=800&q=80",
+        "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=800&q=80",
+        "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80",
         "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&q=80"
     ],
-    park: [
-        "https://images.unsplash.com/photo-1496080174650-637e3f22fa03?w=800&q=80",
-        "https://images.unsplash.com/photo-1519331379826-f9478558d19d?w=800&q=80",
+    "park": [
         "https://images.unsplash.com/photo-1498036882173-b41c28a8ba34?w=800&q=80",
-        "https://images.unsplash.com/photo-1506157786151-c843d80db6e0?w=800&q=80"
+        "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800&q=80",
+        "https://images.unsplash.com/photo-1496080174650-637e3f22fa03?w=800&q=80"
     ],
-    nature: [
-        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
-        "https://images.unsplash.com/photo-1501854140884-074cf2b2c75d?w=800&q=80",
+    "nature": [
+        "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80",
         "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
-        "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800&q=80"
+        "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800&q=80",
+        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80"
     ],
-    water: [
+    "water": [
+        "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80",
         "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80",
         "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
-        "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80",
         "https://images.unsplash.com/photo-1437482078695-73f5ca6c96e2?w=800&q=80"
     ],
-    mountain: [
-        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
+    "mountain": [
         "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&q=80",
+        "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=80",
         "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&q=80",
-        "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=80"
+        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80"
     ],
-    castle: [
-        "https://images.unsplash.com/photo-1599518532438-9233f272a5ba?w=800&q=80",
-        "https://images.unsplash.com/photo-1524397057410-1e775ed476f3?w=800&q=80",
+    "castle": [
         "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
-        "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80"
+        "https://images.unsplash.com/photo-1524397057410-1e775ed476f3?w=800&q=80",
+        "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+        "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=800&q=80"
     ],
-    church: [
-        "https://images.unsplash.com/photo-1548625361-ad8a4e9b720b?w=800&q=80",
-        "https://images.unsplash.com/photo-1529126487569-b5f762696348?w=800&q=80",
-        "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?w=800&q=80",
-        "https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800&q=80"
+    "church": [
+        "https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800&q=80",
+        "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800&q=80",
+        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80",
+        "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?w=800&q=80"
     ],
-    urban: [
-        "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&q=80",
-        "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+    "urban": [
         "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80",
-        "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&q=80"
+        "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&q=80",
+        "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+        "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&q=80"
     ],
-    market: [
+    "market": [
         "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80",
+        "https://images.unsplash.com/photo-1519690889869-e705e59f72e1?w=800&q=80",
         "https://images.unsplash.com/photo-1506619216599-9d16d0903dfd?w=800&q=80",
-        "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&q=80",
-        "https://images.unsplash.com/photo-1519690889869-e705e59f72e1?w=800&q=80"
+        "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&q=80"
     ],
-    kids: [
-        "https://images.unsplash.com/photo-1602737603681-423405763592?w=800&q=80",
+    "kids": [
         "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=800&q=80",
-        "https://images.unsplash.com/photo-1596464716127-f9a8759d1b5a?w=800&q=80",
-        "https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=800&q=80"
+        "https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=800&q=80",
+        "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&q=80"
     ],
-    animals: [
-        "https://images.unsplash.com/photo-1534567176735-842407a66d5d?w=800&q=80",
+    "animals": [
         "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=800&q=80",
         "https://images.unsplash.com/photo-1518796745738-41048802f99a?w=800&q=80",
         "https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=800&q=80"
     ],
-    travel: [
-        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80",
+    "travel": [
+        "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80",
         "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800&q=80",
-        "https://images.unsplash.com/photo-1476900543704-4312b78632f8?w=800&q=80",
-        "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80"
+        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80",
+        "https://images.unsplash.com/photo-1476900543704-4312b78632f8?w=800&q=80"
     ]
 };
 
