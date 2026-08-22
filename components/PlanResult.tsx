@@ -1,3 +1,6 @@
+import { ItineraryRouteMap } from './ItineraryRouteMap';
+import { LocationPhotoCarousel } from './LocationPhotoCarousel';
+import { HourlyWeatherTimeline } from './HourlyWeatherTimeline';
 import React, { useMemo, useState, useEffect, useId } from 'react';
 import { PlanResult, FamilyPreferences } from '../types';
 import { MapPin, CloudSun, RotateCcw, Loader2, TrainFront, Utensils, Flag, BookOpen, Star, CheckCircle, Search, ExternalLink, Image as ImageIcon, Clock, Navigation, Map as MapIcon, CornerDownRight, Sparkles, Moon, User, Smile, Backpack, Car, Coins, Share2, MessageCircle, Facebook, Mail, Link as LinkIcon, X, Check, Info, Route } from 'lucide-react';
@@ -579,7 +582,7 @@ export const ActivityCard: React.FC<{ title: string; content: string; visualLine
         <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-100 mb-10 transition-all hover:shadow-md group">
             <div className="flex flex-col md:flex-row h-full">
                 <div className="md:w-1/3 h-64 md:h-auto relative overflow-hidden bg-slate-100 border-b md:border-b-0 md:border-r border-slate-100 group">
-                     <SmartImage title={searchLocation} className="w-full h-full absolute inset-0 transition-transform duration-700 group-hover:scale-105" t={t} />
+                     <LocationPhotoCarousel title={displayTitle} className="w-full h-full min-h-[240px]" />
                 </div>
                 <div className="p-8 md:w-2/3 flex flex-col justify-center">
                     <div className="flex justify-between items-start mb-3">
@@ -956,6 +959,27 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
             </div>
 
             <SummaryCard text={plan.text} preferences={preferences} />
+
+      {/* ??? MAPPA INTERATTIVA 3D CON TRACCIATO E MARKER AVATAR */}
+      {structuredDays && structuredDays.length > 0 && (
+        <div className="mb-10 animate-fade-in">
+          <ItineraryRouteMap
+            waypoints={structuredDays.flatMap(d => d.activities).map(a => ({
+              title: a.title,
+              visualLine: a.visualLine
+            }))}
+            familyAvatarUrl={preferences?.children?.[0]?.avatarUrl || preferences?.adultsData?.[0]?.avatarUrl}
+            dayTitle="Tracciato Percorso Avventura"
+          />
+        </div>
+      )}
+
+      {/* ?? TIMELINE METEO ORARIA DINAMICA */}
+      <HourlyWeatherTimeline
+        dayName={preferences.selectedDate ? new Date(preferences.selectedDate).toLocaleDateString() : 'Weekend'}
+        meteoLine={plan.text.split('\n').find(l => l.includes('METEO_VISUAL:'))?.replace('METEO_VISUAL:', '').trim()}
+      />
+
 
             <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-stone-200 mb-12 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-slate-500 text-sm font-bold uppercase tracking-wider"><CheckCircle className="w-4 h-4 text-emerald-500" /> {t.ready_itinerary}</div>
