@@ -744,7 +744,7 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
         const days: { title: string, activities: any[], raw: string, fullChunk: string }[] = [];
         const fullText = plan.text;
         
-        const satRegex = /(^|\n)##\s*(Sabato|Saturday|Sábado|Samedi|Samstag)/i;
+        const satRegex = /(^|\n)##\s*(Sabato|Saturday|S�bado|Samedi|Samstag)/i;
         const sunRegex = /(^|\n)##\s*(Domenica|Sunday|Domingo|Dimanche|Sonntag)/i;
         const satMatch = fullText.match(satRegex);
         const sunMatch = fullText.match(sunRegex);
@@ -753,9 +753,12 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
         
         if (satIndex !== -1) {
             const fullSatChunk = (sunIndex !== -1 && sunIndex > satIndex) ? fullText.substring(satIndex, sunIndex) : fullText.substring(satIndex);
-            let cleanSatChunk = fullSatChunk.replace(/(^|\n)##\s*(Sabato|Saturday|Sábado|Samedi|Samstag).*/i, ''); 
-            const nextSection = cleanSatChunk.search(/(^|\n)##\s*(Missioni|Missions|Favola|Story|Budget|Trasporti|Zaino|Sabato|Saturday|Sábado|Samedi|Samstag|Domenica|Sunday|Domingo|DATA_MARKER)/i);
-             if (nextSection !== -1) cleanSatChunk = cleanSatChunk.substring(0, nextSection);
+            let cleanSatChunk = fullSatChunk.replace(/(^|\n)##\s*(Sabato|Saturday|S�bado|Samedi|Samstag).*/i, ''); 
+            
+            // Stop ONLY at next Day or DATA_MARKER (do not stop at ## Missioni or ## Budget)
+            const stopMatch = cleanSatChunk.search(/(^|\n)##\s*(Domenica|Sunday|Domingo|Dimanche|Sonntag|DATA_MARKER)/i);
+            if (stopMatch !== -1 && stopMatch > 0) cleanSatChunk = cleanSatChunk.substring(0, stopMatch);
+            
             const acts = parseActivities(cleanSatChunk);
             const title = satMatch ? satMatch[2] : t.saturday;
             if (acts.length > 0) days.push({ title: title, activities: acts, raw: title, fullChunk: fullSatChunk }); 
@@ -764,8 +767,11 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
         if (sunIndex !== -1) {
             const fullSunChunk = fullText.substring(sunIndex);
             let cleanSunChunk = fullSunChunk.replace(/(^|\n)##\s*(Domenica|Sunday|Domingo|Dimanche|Sonntag).*/i, '');
-            const nextSection = cleanSunChunk.search(/(^|\n)##\s*(Budget|Trasporti|Zaino|Missioni|Missions|Favola|Story|Sabato|Saturday|Sábado|Samedi|Samstag|Domenica|Sunday|Domingo|DATA_MARKER)/i);
-            if (nextSection !== -1) cleanSunChunk = cleanSunChunk.substring(0, nextSection);
+            
+            // Stop ONLY at next Day or DATA_MARKER (do not stop at ## Missioni or ## Budget)
+            const stopMatch = cleanSunChunk.search(/(^|\n)##\s*(Sabato|Saturday|S�bado|Samedi|Samstag|DATA_MARKER)/i);
+            if (stopMatch !== -1 && stopMatch > 0) cleanSunChunk = cleanSunChunk.substring(0, stopMatch);
+            
             const acts = parseActivities(cleanSunChunk);
             const title = sunMatch ? sunMatch[2] : t.sunday;
             if (acts.length > 0) days.push({ title: title, activities: acts, raw: title, fullChunk: fullSunChunk });

@@ -149,7 +149,7 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
           constraints = `
             ${strictNamingRule}
             LOGISTICA: La famiglia parte la mattina e rientra dopo cena.
-            STRUTTURA OBBLIGATORIA (usa esattamente questi titoli con nomi reali):
+            STRUTTURA OBBLIGATORIA FULL DAY (MANDATORIO: DEVI GENERARE TUTTE E 3 LE SEZIONI SENZA OMETTERNE NESSUNA):
             1. ### Mattina: [Nome Reale Attivit� Mattutina]
             2. ### ??? Pranzo: [Nome Reale Ristorante o Trattoria]
             3. ### Pomeriggio: [Nome Reale Attivit� Pomeridiana]
