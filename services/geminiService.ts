@@ -124,7 +124,7 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
           return `## ${dayName}
     ### Relax: Giornata di Riposo
     VISUAL_SCENE: Atmosfera rilassante a casa o nel parco vicino
-    GEO_LOCATION: Parco Vicino, Italia
+    GEO_LOCATION: Parco Vicino
     Giornata libera per ricaricare le energie. Nessuna attivit� di viaggio pianificata.`;
       }
       

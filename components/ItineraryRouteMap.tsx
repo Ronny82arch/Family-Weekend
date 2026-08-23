@@ -78,7 +78,7 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
         const isHome = i === 0;
 
         if (isHome) {
-          const homeQuery = `${baseCity}, Italia`;
+          const homeQuery = baseCity;
           let homePoint: [number, number] = DEFAULT_CENTER;
 
           if (geocodeCache[homeQuery]) {
@@ -114,8 +114,8 @@ export const ItineraryRouteMap: React.FC<ItineraryRouteMapProps> = ({
 
         const queries = [
           `${pure}, ${baseCity}`,
-          `${pure.replace(/Regionale|Naturale|Storico|Nazionale|Antico/gi, '').replace(/\s+/g, ' ').trim()}, ${baseCity}`,
-          `${pure}, Italia`
+          `${pure.replace(/Regionale|Naturale|Storico|Nazionale|Antico|National|Park|Museum/gi, '').replace(/\s+/g, ' ').trim()}, ${baseCity}`,
+          `${pure}`
         ];
 
         let foundPoint: [number, number] | null = null;
