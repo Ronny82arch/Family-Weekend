@@ -30,12 +30,13 @@ const REAL_SCENIC_FALLBACKS: PhotoItem[] = [
 
 interface LocationPhotoCarouselProps {
   title: string;
+  imageQuery?: string;
   className?: string;
   familyAvatars?: string[];
   baseCity?: string;
 }
 
-export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ title, className = 'w-full h-64 sm:h-72', familyAvatars = [], baseCity = 'Italia' }) => {
+export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ title, imageQuery, className = 'w-full h-64 sm:h-72', familyAvatars = [], baseCity = 'Italia' }) => {
   const isFoodVenue = useMemo(() => {
     return /ristorante|trattoria|osteria|pizzeria|cena|pranzo|colazione|bar|caff�/i.test(title);
   }, [title]);
@@ -71,7 +72,17 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
 
     const fetchRealVenuePhotos = async () => {
       try {
-        const queryTerm = baseCity && !cleanTitle.toLowerCase().includes(baseCity.toLowerCase()) ? `${cleanTitle} ${baseCity}` : cleanTitle;
+        // Use AI-provided canonical imageQuery if available, otherwise clean the title
+        const targetSearch = imageQuery || title
+          .replace(/###/g, '')
+          .replace(/\*\*/g, '')
+          .replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '')
+          .replace(/^[^a-zA-Z0-9\u00C0-\u024F]+/u, '')
+          .replace(/^(Visita|Visita guidata|Passeggiata|Sosta|Tappa|Giro|Tour|Andiamo|Escursione|Pranzo|Cena)\s+(al|alla|allo|agli|alle|ai|a|nel|nella|nello|negli|nelle|nei|in|presso|di|del|della|dello|degli|delle|dei)\s+/gi, '')
+          .replace(/\s+(con|ed|e)\s+.*$/i, '')
+          .trim();
+
+        const queryTerm = baseCity && !targetSearch.toLowerCase().includes(baseCity.toLowerCase()) ? `${targetSearch} ${baseCity}` : targetSearch;
         const url = `https://it.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(queryTerm)}&gsrlimit=5&prop=pageimages&piprop=thumbnail&pithumbsize=1000&format=json&origin=*`;
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 3000);
@@ -89,7 +100,6 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
               const wikiImg = p?.thumbnail?.source;
               if (wikiImg) {
                 const lower = wikiImg.toLowerCase();
-                // STRICT FILTERING: Exclude logos, actors, maps, flags, diagrams, metro signs
                 const isIrrelevant = lower.includes('map') || lower.includes('mappa') || lower.includes('flag') || lower.includes('stemm') || lower.includes('emblem') || lower.includes('chart') || lower.includes('logo') || lower.includes('metro') || lower.includes('actor') || lower.includes('pdf') || lower.endsWith('.svg');
 
                 if (!isIrrelevant && !realItems.some(item => item.url === wikiImg)) {
@@ -97,14 +107,13 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
                     url: wikiImg,
                     isReal: true,
                     isFood: false,
-                    sourceLabel: `?? Foto Reale del Luogo: ${p.title || cleanTitle}`
+                    sourceLabel: `?? Foto Reale Verified: ${p.title || targetSearch}`
                   });
                 }
               }
             }
 
             if (realItems.length > 0 && isMounted) {
-              // Combine Real Venue Photos with Scenic Regional Photos so the Carousel is ALWAYS rich (3-5 slides)!
               const fullCarousel = [...realItems, ...REAL_SCENIC_FALLBACKS.filter(s => !realItems.some(r => r.url === s.url))].slice(0, 5);
               setPhotoList(fullCarousel);
               setCurrentIndex(0);

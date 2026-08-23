@@ -158,16 +158,19 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     ### Mattina: Visita Guidata a Villa Borghese ed ai Giardini
     VISUAL_SCENE: Giardini monumentali fioriti con fontane e percorsi panoramici
     GEO_LOCATION: Villa Borghese, Roma
+    IMAGE_QUERY: Villa Borghese, Roma
     Passeggiata tra i viali alberati con percorsi per bambini, noleggio risci� e visita ai giardini segreti.
     
     ### ??? Pranzo: Trattoria Da Enzo al 29
     VISUAL_SCENE: Pasta fresca tradizionale servita in un'accogliente trattoria tipica
-    GEO_LOCATION: Via dei Vascellari, Roma
+    GEO_LOCATION: Trattoria Da Enzo al 29, Roma
+    IMAGE_QUERY: Trattoria Da Enzo, Roma
     Pranzo rilassante con piatti tipici della tradizione, menu speciale dedicato ai bimbi e dolci artigianali.
 
     ### Pomeriggio: Explora il Museo dei Bambini
     VISUAL_SCENE: Padiglione interattivo con esperimenti e giochi scientifici
-    GEO_LOCATION: Via Flaminia, Roma
+    GEO_LOCATION: Explora Museo dei Bambini, Roma
+    IMAGE_QUERY: Explora Museo dei Bambini, Roma
     Pomeriggio di puro divertimento tra installazioni interattive, giochi d'acqua e laboratori pratici.`;
       } else if (mode === 'morning') {
           constraints = `
@@ -337,6 +340,7 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     - Nomi dei luoghi in "**Grassetto**" (Es: **Parco Sigurt�**)
     - Visual scene sotto i titoli: "VISUAL_SCENE: [Descrizione breve per immagine]"
     - GEO_LOCATION sotto la visual scene: "GEO_LOCATION: [Nome Reale Luogo, Citt�]"
+    - IMAGE_QUERY sotto la GEO_LOCATION: "IMAGE_QUERY: [Nome Reale Luogo o Ristorante, Citt�]"
     - EXPLO_QUEST sotto la GEO_LOCATION: "EXPLO_QUEST: [Indovinello/Caccia al tesoro]"
 
     ## Intro
@@ -715,6 +719,7 @@ export const swapSingleActivity = async (
        ### [Fascia Oraria]: [Nome Reale Nuova Attivit�]
        VISUAL_SCENE: [Descrizione visiva breve]
        GEO_LOCATION: [Nome Reale Luogo, Citt�]
+       IMAGE_QUERY: [Nome Reale Luogo o Ristorante, Citt�]
        [2-3 frasi coinvolgenti con dettagli pratici, parcheggio ed una sfida per i bambini]
   `;
 
