@@ -316,11 +316,17 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     5. MICRO-MISSIONE PER BAMBINI (EXPLO_QUEST):
     - Per ogni attivit�, inserisci una breve caccia al tesoro o indovinello legato al luogo reale (es. "EXPLO_QUEST: Trova la fontana col leone e conta quante finestre ha il palazzo!").
 
-    6. PROTOCOLLO ANTI-ALLUCINAZIONE & RIGOROSIT� DATI (CRITICO - ZERO ERRORE):
-    - HARD RADIUS BOUNDARY ENFORCER: Tutte le attrazioni ed i ristoranti DEVONO trovarsi TASSATIVAMENTE entro il raggio massimo di ${prefs.radiusKm} KM dalla partenza (${locationDescription}). � SEVERAMENTE VIETATO proporre destinazioni oltre questa distanza.
+    6. PROTOCOLLO ANTI-ALLUCINAZIONE & RICERCA AVANZATA (CRITICO - ZERO ERRORE):
+    - HARD RADIUS & ESPANSIONE GRADUALE: Cerca prioritariamente entro il raggio di ${prefs.radiusKm} KM dalla partenza (${locationDescription}). Se per soddisfare al meglio un mood o interesse di nicchia non vi sono strutture idonee nei ${prefs.radiusKm} KM, espandi la ricerca a 25-30 KM indicando con trasparenza: "(Attivit� selezionata a X km per garantire la massima qualit� del mood)".
     - DIVERSITY & SERENDIPITY INDEX (REGOLE 70/30): Per ogni giorno, bilancia le tappe selezionando il 70% di grandi attrazioni iconiche ed imperdibili della zona (Anchor Points) ed il 30% di gemme locali autentiche, meno conosciute e poco affollate (Serendipity Points).
-    - WEATHER & SEASONAL SEARCH FILTERING: Adatta la ricerca al meteo ed alla stagione. Se il meteo prevede pioggia o freddo, sopprimi le attivit� all'aperto e dai priorit� assoluta ad attrazioni al chiuso riscaldate (musei per bambini, acquari, serre). Se fa molto caldo, prediligi oasi alberate ombreggiate e parchi acquatici/fluviali.
-    - NO ALLUCINAZIONI & CANONICAL PLACES: � SEVERAMENTE VIETATO inventare nomi di luoghi o ristoranti. Ogni luogo DEVE essere un'entit� reale presente su Google Maps nel raggio di ${prefs.radiusKm} KM.
+    - MATRICE DI PESO SEMANTICO (60/40): Bilancia l'intento applicando 60% di peso al Mood ("${prefs.vibe || "Equilibrato"}") e 40% agli Interessi ("${prefs.interests || "Famiglia"}"). Fondi armoniosamente i due elementi (es. Mood="Natura" + Interessi="Musei" ? Museo Naturalistico o Parco Sculture).
+    - AGE-GROUP QUERY DISAMBIGUATION: Adatta la ricerca alla fascia d'et� dei figli (${childrenDescription}):
+      * Per 0-3 anni: query arricchite con "accessibile in passeggino", "zone ombra e relax", "sentieri pianeggianti".
+      * Per 4-8 anni: query arricchite con "parco giochi recintato", "laboratori interattivi", "ristorante con area giochi".
+      * Per 9-17 anni: query arricchite con "parco avventura", "punti panoramici", "museo tecnologico/scientifico".
+    - WEATHER & SEASONAL SEARCH FILTERING: Adatta la ricerca al meteo ed alla stagione. Se il meteo prevede pioggia o freddo, sopprimi le attivit� all'aperto e dai priorit� assoluta ad attrazioni al chiuso riscaldate. Se fa molto caldo, prediligi oasi alberate ombreggiate e parchi acquatici/fluviali.
+    - SOGLIA DI QUALIT� E RATING (4+ STELLE): Privilegia attrazioni e ristoranti con valutazione elevata (4+ stelle su Google Maps) e recensioni positive per famiglie.
+    - NO ALLUCINAZIONI & CANONICAL PLACES: � SEVERAMENTE VIETATO inventare nomi di luoghi o ristoranti. Ogni luogo DEVE essere un'entit� reale presente su Google Maps.
     - FILTRI NEGATIVI AUTOMATICI: Escludi trappole per turisti di scarsa qualit�, catene di fast-food spazzatura, locali rumorosi non adatti ai bambini e percorsi di trekking ripidi o pericolosi per i passeggini.
     - STRATEGIA LOGISTICA: ${strategyInstruction}
     ${previousPlanClause}
