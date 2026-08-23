@@ -1,54 +1,42 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Maximize2, X, Sparkles, Camera, Check, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, X, Sparkles, Camera, Check } from 'lucide-react';
 
 const MULTI_PHOTO_LIBRARY: Record<string, string[]> = {
   river_nature: [
-    "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80",
-    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
-    "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800&q=80",
-    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80"
+    "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80"
   ],
   pizza: [
-    "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80",
-    "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800&q=80",
-    "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=800&q=80"
+    "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80"
   ],
   restaurant: [
-    "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
-    "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80",
-    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80"
+    "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80"
   ],
   breakfast: [
-    "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800&q=80",
-    "https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=800&q=80"
+    "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800&q=80"
   ],
   museum: [
-    "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=800&q=80",
-    "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=800&q=80"
+    "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=800&q=80"
   ],
   park: [
-    "https://images.unsplash.com/photo-1498036882173-b41c28a8ba34?w=800&q=80",
-    "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800&q=80"
+    "https://images.unsplash.com/photo-1498036882173-b41c28a8ba34?w=800&q=80"
   ],
   castle: [
-    "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
-    "https://images.unsplash.com/photo-1524397057410-1e775ed476f3?w=800&q=80"
+    "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80"
   ],
   travel: [
-    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80",
-    "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800&q=80"
+    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80"
   ]
 };
 
-const getBasePhotos = (title: string): string[] => {
+const getBasePhoto = (title: string): string => {
   const t = title.toLowerCase();
-  if (t.match(/fiume|sile|lago|oasi|natura|parco|riserva/)) return MULTI_PHOTO_LIBRARY.river_nature;
-  if (t.match(/pizza|pizzeri/)) return MULTI_PHOTO_LIBRARY.pizza;
-  if (t.match(/ristorante|trattoria|osteria|cena|pranzo|lunch|dinner/)) return MULTI_PHOTO_LIBRARY.restaurant;
-  if (t.match(/colazion|break|caff|bar/)) return MULTI_PHOTO_LIBRARY.breakfast;
-  if (t.match(/museo|mostra|museum|gallery/)) return MULTI_PHOTO_LIBRARY.museum;
-  if (t.match(/castello|castle|rocca|fort|palazzo/)) return MULTI_PHOTO_LIBRARY.castle;
-  return MULTI_PHOTO_LIBRARY.travel;
+  if (t.match(/fiume|sile|lago|oasi|natura|parco|riserva/)) return MULTI_PHOTO_LIBRARY.river_nature[0];
+  if (t.match(/pizza|pizzeri/)) return MULTI_PHOTO_LIBRARY.pizza[0];
+  if (t.match(/ristorante|trattoria|osteria|cena|pranzo|lunch|dinner/)) return MULTI_PHOTO_LIBRARY.restaurant[0];
+  if (t.match(/colazion|break|caff|bar/)) return MULTI_PHOTO_LIBRARY.breakfast[0];
+  if (t.match(/museo|mostra|museum|gallery/)) return MULTI_PHOTO_LIBRARY.museum[0];
+  if (t.match(/castello|castle|rocca|fort|palazzo/)) return MULTI_PHOTO_LIBRARY.castle[0];
+  return MULTI_PHOTO_LIBRARY.travel[0];
 };
 
 export interface PhotoItem {
@@ -65,14 +53,14 @@ interface LocationPhotoCarouselProps {
 }
 
 export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ title, className = 'w-full h-64 sm:h-72', familyAvatars = [], baseCity = 'Italia' }) => {
-  const basePhotos = useMemo(() => getBasePhotos(title), [title]);
+  const fallbackPhoto = useMemo(() => getBasePhoto(title), [title]);
 
   const [photoList, setPhotoList] = useState<PhotoItem[]>(() => {
-    return basePhotos.map(url => ({
-      url,
+    return [{
+      url: fallbackPhoto,
       isReal: false,
       sourceLabel: 'Foto di Ispirazione (Atmosfera Tipica)'
-    }));
+    }];
   });
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -89,11 +77,12 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
       .replace(/\s+(con|ed|e)\s+.*$/i, '')
       .trim();
 
-    const fetchRealPhoto = async () => {
+    const fetchRealPhotos = async () => {
       try {
-        const url = `https://it.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanTitle)}&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=1000&format=json&origin=*`;
+        const queryTerm = baseCity && !cleanTitle.toLowerCase().includes(baseCity.toLowerCase()) ? `${cleanTitle} ${baseCity}` : cleanTitle;
+        const url = `https://it.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(queryTerm)}&gsrlimit=5&prop=pageimages&piprop=thumbnail&pithumbsize=1000&format=json&origin=*`;
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 2500);
+        const timer = setTimeout(() => controller.abort(), 3000);
         const res = await fetch(url, { signal: controller.signal });
         clearTimeout(timer);
 
@@ -101,35 +90,38 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
           const data = await res.json();
           const pages = data.query?.pages;
           if (pages) {
-            const firstPage = Object.values(pages)[0] as any;
-            const wikiImg = firstPage?.thumbnail?.source;
-            if (wikiImg) {
-              const lower = wikiImg.toLowerCase();
-              const isMapOrDiagram = lower.includes('map') || lower.includes('mappa') || lower.includes('flag') || lower.includes('stemm') || lower.includes('emblem') || lower.includes('chart') || lower.includes('location') || lower.endsWith('.svg');
+            const pageList = Object.values(pages) as any[];
+            const realItems: PhotoItem[] = [];
 
-              if (!isMapOrDiagram && isMounted) {
-                const realItem: PhotoItem = {
-                  url: wikiImg,
-                  isReal: true,
-                  sourceLabel: 'Foto Reale del Luogo Verified'
-                };
-                const inspirationItems: PhotoItem[] = basePhotos.map(u => ({
-                  url: u,
-                  isReal: false,
-                  sourceLabel: 'Foto di Ispirazione (Atmosfera Tipica)'
-                }));
+            for (const p of pageList) {
+              const wikiImg = p?.thumbnail?.source;
+              if (wikiImg) {
+                const lower = wikiImg.toLowerCase();
+                const isMapOrDiagram = lower.includes('map') || lower.includes('mappa') || lower.includes('flag') || lower.includes('stemm') || lower.includes('emblem') || lower.includes('chart') || lower.includes('location') || lower.endsWith('.svg');
 
-                setPhotoList([realItem, ...inspirationItems]);
+                if (!isMapOrDiagram && !realItems.some(item => item.url === wikiImg)) {
+                  realItems.push({
+                    url: wikiImg,
+                    isReal: true,
+                    sourceLabel: `Foto Reale del Luogo: ${p.title || cleanTitle}`
+                  });
+                }
               }
+            }
+
+            if (realItems.length > 0 && isMounted) {
+              // 100% REAL PHOTOS! SUPPRESS STOCK INSPIRATION PHOTOS COMPLETELY WHEN REAL PHOTOS EXIST!
+              setPhotoList(realItems);
+              setCurrentIndex(0);
             }
           }
         }
       } catch (e) {}
     };
 
-    fetchRealPhoto();
+    fetchRealPhotos();
     return () => { isMounted = false; };
-  }, [title, basePhotos]);
+  }, [title, baseCity, fallbackPhoto]);
 
   const currentPhoto = photoList[currentIndex] || photoList[0];
 
@@ -195,16 +187,16 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             {currentPhoto.isReal ? (
               <div className="px-3 py-1.5 bg-emerald-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-emerald-400/30 animate-fade-in">
                 <Camera className="w-3.5 h-3.5 text-amber-300" />
-                <span>Foto Reale del Luogo</span>
+                <span>Foto Reale del Luogo ({currentIndex + 1}/{photoList.length})</span>
               </div>
             ) : (
               <div className="px-3 py-1.5 bg-amber-500/95 backdrop-blur-md text-slate-950 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-amber-300/40 animate-fade-in">
                 <Sparkles className="w-3.5 h-3.5 text-slate-900" />
-                <span>Foto di Ispirazione</span>
+                <span>Foto di Ispirazione (Atmosfera)</span>
               </div>
             )}
           </div>
-        
+
           {/* Family Avatar Souvenir Overlay */}
           {familyAvatars.length > 0 && (
             <div className="absolute bottom-3 right-3 z-10 flex items-center -space-x-2 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20 shadow-xl pointer-events-auto">
@@ -216,34 +208,35 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
               ))}
             </div>
           )}
-
         </div>
 
-        {/* Thumbnail bar */}
-        <div className="bg-slate-950 p-2 flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar border-t border-white/10 z-10">
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-            {photoList.map((p, idx) => (
-              <button
-                key={idx}
-                onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
-                className={`relative w-12 h-10 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-300 ${
-                  idx === currentIndex ? (p.isReal ? 'border-emerald-500 scale-105 opacity-100 ring-2 ring-emerald-300' : 'border-amber-400 scale-105 opacity-100 ring-2 ring-amber-200') : 'border-transparent opacity-50 hover:opacity-100'
-                }`}
-              >
-                <img src={p.url} className="w-full h-full object-cover" />
-                {p.isReal && (
-                  <div className="absolute top-0.5 right-0.5 bg-emerald-500 text-white text-[8px] px-1 rounded-full font-black">
-                    ?
-                  </div>
-                )}
-              </button>
-            ))}
+        {/* Thumbnail bar (Only rendered if photoList > 1) */}
+        {photoList.length > 1 && (
+          <div className="bg-slate-950 p-2 flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar border-t border-white/10 z-10">
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+              {photoList.map((p, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
+                  className={`relative w-12 h-10 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-300 ${
+                    idx === currentIndex ? (p.isReal ? 'border-emerald-500 scale-105 opacity-100 ring-2 ring-emerald-300' : 'border-amber-400 scale-105 opacity-100 ring-2 ring-amber-200') : 'border-transparent opacity-50 hover:opacity-100'
+                  }`}
+                >
+                  <img src={p.url} className="w-full h-full object-cover" />
+                  {p.isReal && (
+                    <div className="absolute top-0.5 right-0.5 bg-emerald-500 text-white text-[8px] px-1 rounded-full font-black">
+                      ?
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest whitespace-nowrap px-2 flex items-center gap-1">
+              <Check className="w-3 h-3" /> Foto Reali ({photoList.length})
+            </span>
           </div>
-
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap px-2">
-            {currentIndex + 1} / {photoList.length}
-          </span>
-        </div>
+        )}
       </div>
 
       {lightboxOpen && (
@@ -255,7 +248,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             <div className="flex items-center gap-3">
               {currentPhoto.isReal ? (
                 <span className="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg">
-                  <Camera className="w-4 h-4 text-amber-300" /> Foto Reale del Luogo Verified
+                  <Camera className="w-4 h-4 text-amber-300" /> Foto Reale del Luogo ({currentIndex + 1}/{photoList.length})
                 </span>
               ) : (
                 <span className="px-4 py-1.5 bg-amber-500 text-slate-950 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg">
