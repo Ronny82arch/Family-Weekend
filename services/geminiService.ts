@@ -261,38 +261,56 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
       }
   } catch(e) {}
 
+  const previousPlanClause = previousPlanText 
+    ? `\n    - VARIET� ED ANTI-RIPETIZIONE OBBLIGATORIA (RIGENERAZIONE): Il cliente sta rigenerando il piano. � SEVERAMENTE VIETATO ripetere gli stessi luoghi, musei o ristoranti gi� proposti nel piano precedente. Proponi nuove alternative REALI ed ORIGINALI nella zona.\n    PIANO PRECEDENTE DA EVITARE:\n${previousPlanText.substring(0, 800)}\n` 
+    : "";
+
   const prompt = `
     Sei un Esperto Local Event Scout e Family Travel Agent con Verificatore di Fatti integrato. Scrivi in ${langName}.
     
-    1. IL CLIENTE:
+    1. IL CLIENTE & PREFERENZE:
     - ${locationDescription}
     - DATA VIAGGIO ESATTA: ${prefs.selectedDate} (Verifica tassativamente il calendario per questo specifico weekend).
     - ${prefs.adults} Adulti, Bambini: ${childrenDescription}
-    - Interessi: ${prefs.interests || "Divertimento per famiglie"}
-    - Mood: ${prefs.vibe || "Equilibrato"}
+    - Interessi specifici: ${prefs.interests || "Divertimento per famiglie"}
+    - MOOD / VIBE SELEZIONATO: "${prefs.vibe || "Equilibrato"}"
     - ${verifiedEventHints}
-    
-    2. PROTOCOLLO ANTI-ALLUCINAZIONE & VERIFICA DATI (CRITICO - ZERO ERRORE):
-    - NO ALLUCINAZIONI: È SEVERAMENTE VIETATO inventare nomi di musei, parchi, ristoranti, sagre o eventi non esistenti o chiusi.
-    - VERIFICA GOOGLE MAPS / SEARCH: Ogni luogo raccomandato DEVE essere un'attività REALE e realmente presente su Google Maps nel raggio di ${prefs.radiusKm} KM.
-    - VERIFICA ORARI E GIORNI DI CHIUSURA: Controlla che le attrazioni consigliate non siano chiuse nel giorno indicato (es. musei chiusi il Lunedì, ristoranti chiusi a pranzo).
+
+    2. DIRETTIVE STRITTISSIME SUI MOOD:
+    - Se MOOD = "Natura" / "Outdoor": privilegia parchi naturali, oasi WWF, fattorie didattiche, passeggiate nei boschi e percorsi fioriti.
+    - Se MOOD = "Cultura" / "Storia": privilegia castelli, musei interattivi per bambini, borghi storici ed installazioni didattiche.
+    - Se MOOD = "Avventura" / "Azione": privilegia parchi avventura sospesi, percorsi di orienteering, zip-line o labirinti di siepi.
+    - Se MOOD = "Relax" / "Slow": privilegia ritmi calmi, ampi parchi urbani con risci�, trattorie di campagna con spazi verdi e picnic.
+    - Se MOOD = "Enogastronomia": privilegia agriturismi tradizionali, trattorie a km zero con area giochi e degustazioni per famiglie.
+
+    3. PROSSIMIT� LOGISTICA DEI RISTORANTI (CRITICO):
+    - Il ristorante consigliato per il PRANZO deve trovarsi a MASSIMO 10-15 MINUTI D'AUTO (o a piedi) dall'attivit� della MATTINA.
+    - Il ristorante per la CENA (se prevista) deve trovarsi nelle immediate vicinanze dell'attivit� del POMERIGGIO o lungo la rotta del rientro.
+    - Specifica sempre la vicinanza (es. "A soli 5 minuti a piedi da Villa Borghese...").
+
+    4. PROTOCOLLO ANTI-ALLUCINAZIONE & VERIFICA DATI (CRITICO - ZERO ERRORE):
+    - NO ALLUCINAZIONI: � SEVERAMENTE VIETATO inventare nomi di musei, parchi, ristoranti, sagre o eventi non esistenti o chiusi.
+    - VERIFICA GOOGLE MAPS / SEARCH: Ogni luogo raccomandato DEVE essere un'attivit� REALE e realmente presente su Google Maps nel raggio di ${prefs.radiusKm} KM.
+    - VERIFICA ORARI E GIORNI DI CHIUSURA: Controlla che le attrazioni consigliate non siano chiuse nel giorno indicato (es. musei chiusi il Luned�, ristoranti chiusi a pranzo).
     - MANIFESTAZIONI E SAGRE REALI: Esegui una ricerca su Google Search per verificare se esistono sagre, mostre o eventi REALI e confermati per il weekend del ${prefs.selectedDate}.
       * Se trovi un evento reale confermato, includilo specificando il nome esatto dell'evento.
-      * Se NON trovi un evento confermato per quel weekend, NON inventarlo! Inserisci invece attrazioni "Evergreen" (parchi naturali, castelli, musei permanenti) che sono sempre aperte e scrivi esplicitamente "(Attività Evergreen verificata)".
+      * Se NON trovi un evento confermato per quel weekend, NON inventarlo! Inserisci invece attrazioni "Evergreen" (parchi naturali, castelli, musei permanenti) che sono sempre aperte e scrivi esplicitamente "(Attivit� Evergreen verificata)".
     - STRATEGIA LOGISTICA: ${strategyInstruction}
+    ${previousPlanClause}
 
-    3. REGOLE DI FORMATTAZIONE (STRICT):
+    5. REGOLE DI FORMATTAZIONE (STRICT):
     - Usa Markdown.
-    - Titoli attività con "### "
-    - Nomi dei luoghi in "**Grassetto**" (Es: **Parco Sigurtà**)
+    - Titoli attivit� con "### "
+    - Nomi dei luoghi in "**Grassetto**" (Es: **Parco Sigurt�**)
     - Visual scene sotto i titoli: "VISUAL_SCENE: [Descrizione breve per immagine]"
+    - GEO_LOCATION sotto la visual scene: "GEO_LOCATION: [Nome Reale Luogo, Citt�]"
     - SE UN GIORNO E' IMPOSTATO SU "MATTINA", NON GENERARE ATTIVITA' POMERIDIANE.
     - SE UN GIORNO E' IMPOSTATO SU "POMERIGGIO", NON GENERARE ATTIVITA' MATTUTINE.
 
     ## Intro
     [Inspirational intro]
     GENERATE METEO_VISUAL for ${terms.sat} and ${terms.sun}. Format: DAY|MORNING_ICON|TEMP|AFTERNOON_ICON|TEMP|NIGHT_ICON|TEMP
-    Example: ${terms.sat.toUpperCase()}|☀️|20°|⛅|22°|🌙|15°
+    Example: ${terms.sat.toUpperCase()}|??|20�|?|22�|??|15�
 
     ${getDayPrompt(terms.sat, prefs.saturdayMode)}
 
