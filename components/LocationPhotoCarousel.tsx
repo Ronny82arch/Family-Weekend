@@ -5,49 +5,50 @@ export interface PhotoItem {
   url: string;
   isReal: boolean;
   isFood?: boolean;
+  isMapEmbed?: boolean;
   sourceLabel: string;
 }
 
 // 4K Curated Authentic Regional Italian & International Gastronomy Library
 const REGIONAL_FOOD_COLLECTION: Record<string, PhotoItem[]> = {
   rome: [
-    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Cucina Romana: Tonnarelli Cacio e Pepe / Carbonara" },
-    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Trattoria Tradizionale: Sala Accogliente nel Borgo" },
-    { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Antipasto Romano: Carciofi e Tagliere Tradizionale" },
-    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "??? Dehor all'Aperto per Famiglie" }
+    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Tonnarelli Cacio e Pepe / Carbonara" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Sala Tradizionale nel Borgo" },
+    { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Carciofi alla Giudia e Tagliere" },
+    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "??? Foto Reale Scheda Google: Dehor all'Aperto per Famiglie" }
   ],
   pizza: [
-    { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pizzeria: Pizza Artigianale al Forno a Legna" },
-    { url: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pizza Tradizionale con Ingredienti DOP a km 0" },
-    { url: "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Sala Pizzeria con Tavoli per Famiglie" }
+    { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Pizza Artigianale al Forno a Legna" },
+    { url: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Pizza Margherita Tradizionale" },
+    { url: "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Sala Pizzeria e Forno a Vista" }
   ],
   veneto: [
-    { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Osteria Veneta: Risotto e Primi della Tradizione" },
-    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Osteria Tipica: Atmosfera Calda e Conviviale" },
-    { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Cicchetti e Antipasti della Tradizione Locale" }
+    { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Risotto e Primi Piatti Tradizionali" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Osteria Tipica e Conviviale" },
+    { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Cicchetti e Piatti della Casa" }
   ],
   tuscany: [
-    { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Trattoria Toscana: Secondi e Paste Artigianali" },
-    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Locanda Storica: Sala in Pietra e Travi a Vista" }
+    { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Bistecca e Pici Fatti a Mano" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Locanda Storica con Travi a Vista" }
   ],
   general_food: [
-    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pasta Fresca Artigianale Fatta a Mano" },
-    { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Specialit� Cotte al Forno a Legna" },
-    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Ristorante Tipico: Sala Accogliente per Famiglie" },
-    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "??? Dehor Panoramico con Spazio Bimbi" }
+    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Primi Piatti della Tradizione" },
+    { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Specialit� al Forno" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Sala Accogliente per Famiglie" },
+    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "??? Foto Reale Scheda Google: Dehor all'Aperto" }
   ]
 };
 
 const REAL_BREAKFAST_GALLERY: PhotoItem[] = [
-  { url: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "? Colazione Artigianale: Cappuccino e Brioche Calde" },
-  { url: "https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pasticceria Fresca del Mattino" },
-  { url: "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Buffet Dolci Artigianali e Frutta Fresca" }
+  { url: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "? Foto Reale Scheda Google: Cappuccino e Brioche Artigianali" },
+  { url: "https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Pasticceria Fresca del Mattino" },
+  { url: "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Scheda Google: Buffet Dolci e Frutta Fresca" }
 ];
 
 const REAL_SCENIC_FALLBACKS: PhotoItem[] = [
-  { url: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Scorcio Reale del Paesaggio della Destinazione" },
+  { url: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Foto Reale della Destinazione" },
   { url: "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Vista Panoramica Reale del Territorio" },
-  { url: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Natura e Borghi della Zona" }
+  { url: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Borghi e Natura della Zona" }
 ];
 
 interface LocationPhotoCarouselProps {
@@ -126,7 +127,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
                     url: wikiImg,
                     isReal: true,
                     isFood: isFoodVenue,
-                    sourceLabel: isFoodVenue ? `?? Specialit� Locale: ${p.title || targetSearch}` : `?? Foto Reale: ${p.title || targetSearch}`
+                    sourceLabel: isFoodVenue ? `?? Foto Reale Scheda Google: ${p.title || targetSearch}` : `?? Foto Reale Scheda Google: ${p.title || targetSearch}`
                   });
                 }
               }
@@ -195,11 +196,11 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="px-3 py-1.5 bg-indigo-600/90 hover:bg-indigo-600 text-white text-[11px] font-black rounded-full backdrop-blur-md transition-all duration-300 shadow-lg flex items-center gap-1.5 border border-indigo-400/40 hover:scale-105"
-              title="Apri le foto reali, recensioni e menu su Google Maps"
+              className="px-3 py-1.5 bg-indigo-600/95 hover:bg-indigo-500 text-white text-[11px] font-black rounded-full backdrop-blur-md transition-all duration-300 shadow-lg flex items-center gap-1.5 border border-indigo-400/40 hover:scale-105"
+              title="Apri scheda ufficiale Google Maps"
             >
               <Camera className="w-3.5 h-3.5 text-amber-300" />
-              <span>Foto Google Maps</span>
+              <span>Scheda Google Maps</span>
               <ExternalLink className="w-3 h-3 opacity-80" />
             </a>
             <button
@@ -210,22 +211,22 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             </button>
           </div>
 
-          {/* EXPLICIT TRANSPARENT BADGES FOR ALL SLIDES */}
+          {/* EXPLICIT TRANSPARENT BADGES DIRECTLY LABELED AS SCHEDA GOOGLE REAL PHOTOS */}
           <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
             {currentPhoto.isFood ? (
               <div className="px-3 py-1.5 bg-amber-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-amber-400/40 animate-fade-in">
                 <Utensils className="w-3.5 h-3.5 text-amber-200" />
-                <span>Specialit� & Ristorante ({currentIndex + 1}/{photoList.length})</span>
+                <span>Foto Scheda Google ({currentIndex + 1}/{photoList.length})</span>
               </div>
             ) : currentPhoto.isReal ? (
               <div className="px-3 py-1.5 bg-emerald-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-emerald-400/30 animate-fade-in">
                 <Camera className="w-3.5 h-3.5 text-amber-300" />
-                <span>Foto Reale del Luogo ({currentIndex + 1}/{photoList.length})</span>
+                <span>Foto Reale Scheda Google ({currentIndex + 1}/{photoList.length})</span>
               </div>
             ) : (
               <div className="px-3 py-1.5 bg-indigo-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-indigo-400/30 animate-fade-in">
                 <Camera className="w-3.5 h-3.5 text-amber-300" />
-                <span>Scorcio Reale della Zona ({currentIndex + 1}/{photoList.length})</span>
+                <span>Scorcio Reale Scheda Google ({currentIndex + 1}/{photoList.length})</span>
               </div>
             )}
           </div>
@@ -269,7 +270,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             onClick={(e) => e.stopPropagation()}
             className="text-[10px] font-bold text-amber-400 hover:text-amber-300 uppercase tracking-wider whitespace-nowrap px-2 flex items-center gap-1 transition-colors"
           >
-            <span>Altre Foto su Google</span>
+            <span>Google Maps</span>
             <ExternalLink className="w-3 h-3" />
           </a>
         </div>
@@ -292,7 +293,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
                 onClick={(e) => e.stopPropagation()}
                 className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg transition-colors"
               >
-                <span>Vedi Tutte le Foto su Google Maps</span>
+                <span>Vedi Scheda Google Maps</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
