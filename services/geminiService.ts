@@ -276,12 +276,19 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     - MOOD / VIBE SELEZIONATO: "${prefs.vibe || "Equilibrato"}"
     - ${verifiedEventHints}
 
-    2. DIRETTIVE STRITTISSIME SUI MOOD:
-    - Se MOOD = "Natura" / "Outdoor": privilegia parchi naturali, oasi WWF, fattorie didattiche, passeggiate nei boschi e percorsi fioriti.
-    - Se MOOD = "Cultura" / "Storia": privilegia castelli, musei interattivi per bambini, borghi storici ed installazioni didattiche.
-    - Se MOOD = "Avventura" / "Azione": privilegia parchi avventura sospesi, percorsi di orienteering, zip-line o labirinti di siepi.
-    - Se MOOD = "Relax" / "Slow": privilegia ritmi calmi, ampi parchi urbani con risci�, trattorie di campagna con spazi verdi e picnic.
-    - Se MOOD = "Enogastronomia": privilegia agriturismi tradizionali, trattorie a km zero con area giochi e degustazioni per famiglie.
+    2. DIRETTIVE RIGOROSE SUI 12 MOOD (COMPORTAMENTO OBBLIGATORIO):
+    - Se MOOD = "surprise" / "Sorprendimi": Mischia attrazioni insolite, luoghi segreti poco noti, curiosit� locali ed eventi inattesi per sorprendere la famiglia.
+    - Se MOOD = "nature" / "Natura": Privilegia parchi naturali, oasi WWF, fattorie didattiche, passeggiate nei boschi, fiume e riserve florofaunistiche.
+    - Se MOOD = "culture" / "Cultura": Privilegia castelli, musei interattivi per bambini, borghi storici, parchi archeologici ed installazioni culturali.
+    - Se MOOD = "adventure" / "Avventura": Privilegia parchi avventura con percorsi sospesi, zip-line, labirinti di siepi, orienteering ed escursioni dinamiche.
+    - Se MOOD = "magic" / "Fiabe & Magia": Privilegia luoghi incantati, boschi delle fiabe, castelli fiabeschi, spettacoli di magia e parchi tematici fantastici.
+    - Se MOOD = "food" / "Cibo & Relax": Privilegia agriturismi tradizionali, trattorie a km zero con area giochi, picnic in vigneto o parchi e degustazioni family.
+    - Se MOOD = "sport" / "Sport": Privilegia percorsi ciclabili family-friendly, noleggio risci�/bici, trekking leggeri panoramici e centri outdoor.
+    - Se MOOD = "relax" / "Relax": Privilegia ritmi distesi, ampi parchi urbani fioriti, passeggiate panoramiche su lungolago/fiumi ed aree verde riposanti.
+    - Se MOOD = "music" / "Musica": Privilegia musei della musica/suono, teatri all'aperto per ragazzi, eventi musicali e spettacoli interattivi.
+    - Se MOOD = "beach" / "Mare": Privilegia spiagge a misura di bambino, lidi con parchi giochi sulla sabbia, passeggiate sul lungomare e gite in barca.
+    - Se MOOD = "mountain" / "Montagna": Privilegia rifugi alpini accoglienti, malghe con animali, cabinovie panoramiche e sentieri montani facili per bimbi.
+    - Se MOOD = "art" / "Arte": Privilegia musei d'arte con percorsi per ragazzi, parchi di sculture all'aperto, laboratori creativi e quartieri con street art.
 
     3. PROSSIMIT� LOGISTICA DEI RISTORANTI (CRITICO):
     - Il ristorante consigliato per il PRANZO deve trovarsi a MASSIMO 10-15 MINUTI D'AUTO (o a piedi) dall'attivit� della MATTINA.
