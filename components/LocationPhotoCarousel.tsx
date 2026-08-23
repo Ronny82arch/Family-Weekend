@@ -191,21 +191,10 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
 
           {/* Direct Google Maps Real Photos & 360 Buttons */}
           <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
-            <a
-              href={googleMapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="px-3 py-1.5 bg-indigo-600/95 hover:bg-indigo-500 text-white text-[11px] font-black rounded-full backdrop-blur-md transition-all duration-300 shadow-lg flex items-center gap-1.5 border border-indigo-400/40 hover:scale-105"
-              title="Apri scheda ufficiale Google Maps"
-            >
-              <Camera className="w-3.5 h-3.5 text-amber-300" />
-              <span>Scheda Google Maps</span>
-              <ExternalLink className="w-3 h-3 opacity-80" />
-            </a>
             <button
               onClick={(e) => { e.stopPropagation(); setLightboxOpen(true); }}
-              className="p-2 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg"
+              className="p-2.5 bg-black/60 hover:bg-black/90 text-white rounded-full backdrop-blur-md transition-all duration-300 shadow-lg"
+              title="Ingrandisci foto a schermo intero"
             >
               <Maximize2 className="w-4 h-4" />
             </button>
@@ -263,16 +252,9 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             ))}
           </div>
 
-          <a
-            href={googleMapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="text-[10px] font-bold text-amber-400 hover:text-amber-300 uppercase tracking-wider whitespace-nowrap px-2 flex items-center gap-1 transition-colors"
-          >
-            <span>Google Maps</span>
-            <ExternalLink className="w-3 h-3" />
-          </a>
+          <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap px-2 flex items-center gap-1">
+            <Check className="w-3.5 h-3.5 text-emerald-400" /> Galleria ({photoList.length})
+          </span>
         </div>
       </div>
 
@@ -286,16 +268,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
               <span className="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg">
                 <Camera className="w-4 h-4 text-amber-300" /> {currentPhoto.sourceLabel}
               </span>
-              <a
-                href={googleMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg transition-colors"
-              >
-                <span>Vedi Scheda Google Maps</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              
             </div>
             <button
               onClick={() => setLightboxOpen(false)}
