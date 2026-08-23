@@ -72,7 +72,6 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
 
     const fetchRealVenuePhotos = async () => {
       try {
-        // Use AI-provided canonical imageQuery if available, otherwise clean the title
         const targetSearch = imageQuery || title
           .replace(/###/g, '')
           .replace(/\*\*/g, '')
@@ -82,11 +81,13 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
           .replace(/\s+(con|ed|e)\s+.*$/i, '')
           .trim();
 
+        // 1. Query Italian Wikipedia for real venue/food photos
         const queryTerm = baseCity && !targetSearch.toLowerCase().includes(baseCity.toLowerCase()) ? `${targetSearch} ${baseCity}` : targetSearch;
-        const url = `https://it.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(queryTerm)}&gsrlimit=5&prop=pageimages&piprop=thumbnail&pithumbsize=1000&format=json&origin=*`;
+        const itUrl = `https://it.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(queryTerm)}&gsrlimit=6&prop=pageimages&piprop=thumbnail&pithumbsize=1000&format=json&origin=*`;
+        
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3000);
-        const res = await fetch(url, { signal: controller.signal });
+        const timer = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(itUrl, { signal: controller.signal });
         clearTimeout(timer);
 
         if (res.ok) {
@@ -106,17 +107,18 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
                   realItems.push({
                     url: wikiImg,
                     isReal: true,
-                    isFood: false,
-                    sourceLabel: `?? Foto Reale Verified: ${p.title || targetSearch}`
+                    isFood: isFoodVenue,
+                    sourceLabel: isFoodVenue ? `?? Cucina Reale: ${p.title || targetSearch}` : `?? Foto Reale: ${p.title || targetSearch}`
                   });
                 }
               }
             }
 
             if (realItems.length > 0 && isMounted) {
-              const fullCarousel = [...realItems, ...REAL_SCENIC_FALLBACKS.filter(s => !realItems.some(r => r.url === s.url))].slice(0, 5);
+              const fullCarousel = [...realItems, ...defaultPhotoList.filter(s => !realItems.some(r => r.url === s.url))].slice(0, 5);
               setPhotoList(fullCarousel);
               setCurrentIndex(0);
+              return;
             }
           }
         }

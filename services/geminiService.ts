@@ -155,23 +155,38 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
             3. ### Pomeriggio: [Nome Reale Attivit� Pomeridiana]
           `;
           schedule = `
-    ### Mattina: Visita Guidata a Villa Borghese ed ai Giardini
-    VISUAL_SCENE: Giardini monumentali fioriti con fontane e percorsi panoramici
+    ### Mattina: Visita Guidata a Villa Borghese ed ai Giardini Segreti
+    VISUAL_SCENE: Giardini monumentali fioriti con fontane, viali alberati e percorsi panoramici
     GEO_LOCATION: Villa Borghese, Roma
-    IMAGE_QUERY: Villa Borghese, Roma
-    Passeggiata tra i viali alberati con percorsi per bambini, noleggio risci� e visita ai giardini segreti.
-    
-    ### ??? Pranzo: Trattoria Da Enzo al 29
-    VISUAL_SCENE: Pasta fresca tradizionale servita in un'accogliente trattoria tipica
-    GEO_LOCATION: Trattoria Da Enzo al 29, Roma
-    IMAGE_QUERY: Trattoria Da Enzo, Roma
-    Pranzo rilassante con piatti tipici della tradizione, menu speciale dedicato ai bimbi e dolci artigianali.
+    IMAGE_QUERY: Villa Borghese Roma parco monumentale
+    Iniziamo la giornata con un'esplorazione incantevole del parco storico pi� amato della capitale. I bambini rimarranno affascinati dal noleggio dei risci� a quattro posti per pedalare tra i viali ombreggiati, scoprendo la celebre Fontana dei Cavalli Marini ed il pittoresco Laghetto con il Tempietto di Esculapio, dove � possibile fare un giro in barchetta a remi.
 
-    ### Pomeriggio: Explora il Museo dei Bambini
-    VISUAL_SCENE: Padiglione interattivo con esperimenti e giochi scientifici
+    Per i genitori, la passeggiata offre scorci panoramici imperdibili sulla Terrazza del Pincio con una vista mozzafiato su tutta la citt�. Lungo i percorsi sono disponibili ampie aree verdi recintate per il gioco libero, fontanelle d'acqua potabile fresca e punti ristoro attrezzati per le famiglie con passeggini.
+
+    ??? Parcheggio consigliato: Parcheggio Saba Villa Borghese (interrato con ascensori).
+    EXPLO_QUEST: Cerca la meridiana ad acqua vicino all'Orologio del Pincio e scopri che ore segna!
+    
+    ### ??? Pranzo: Trattoria Tradizionale Da Enzo al 29
+    VISUAL_SCENE: Pasta fresca tradizionale servita in un'accogliente trattoria tipica romana
+    GEO_LOCATION: Trattoria Da Enzo al 29, Roma
+    IMAGE_QUERY: Trattoria Da Enzo Roma pasta carbonara cacio e pepe
+    Sosta gastronomica nel cuore autentico del quartiere storico per ricaricare le energie con la vera cucina tipica. L'atmosfera � calda, familiare e festosa, con personale accogliente abituato a gestire famiglie con bambini piccoli e neonati.
+
+    Piatti imperdibili per gli adulti: i leggendari tonnarelli cacio e pepe cremosi, i carciofi alla giudia croccanti e la carbonara perfetta. Per i pi� piccoli: gnocchetti al pomodoro fresco fatto in casa, polpettine morbide e una spettacolare mousse di mascarpone artigianale con fragoline.
+
+    ?? Spostamento: 12 min in auto o 15 min a piedi da Villa Borghese.
+    ??? Parcheggio consigliato: Parcheggio Trastevere Piazza Belli.
+
+    ### Pomeriggio: Explora - Il Grande Museo Interattivo dei Bambini
+    VISUAL_SCENE: Padiglione interattivo moderno con esperimenti scientifici, giochi d'acqua e percorsi tattili
     GEO_LOCATION: Explora Museo dei Bambini, Roma
-    IMAGE_QUERY: Explora Museo dei Bambini, Roma
-    Pomeriggio di puro divertimento tra installazioni interattive, giochi d'acqua e laboratori pratici.`;
+    IMAGE_QUERY: Explora Museo dei Bambini Roma padiglione giochi
+    Un pomeriggio straordinario interamente dedicato alla scoperta scientifica ed al gioco educativo. La struttura � un grande padiglione a misura di bambino dove tutto si pu� toccare, sperimentare e azionare: dai circuiti d'acqua con dighe e mulini, fino al supermercato in miniatura per simulare la spesa quotidiana e la cabina del treno interattiva.
+
+    Per i piccolissimi (0-3 anni) � presente un'area morbida sensoriale protetta con percorsi tattili e cuscini giganti, mentre per i ragazzi pi� grandi vi sono postazioni con esperimenti sul vento, sull'energia rinnovabile e sull'ottica. La struttura dispone di bagni attrezzati con fasciatoi ad ogni piano, spazio allattamento e bar interno con snack biologici.
+
+    ??? Parcheggio consigliato: Parcheggio Piazza della Marina.
+    EXPLO_QUEST: Trova la macchina del vento e fai volare il foulard colorato fino al soffitto!`;
       } else if (mode === 'morning') {
           constraints = `
             ${strictNamingRule}
@@ -310,7 +325,14 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     - Se MOOD = "mountain" / "Montagna": Privilegia rifugi alpini accoglienti, malghe con animali, cabinovie panoramiche e sentieri montani facili per bimbi.
     - Se MOOD = "art" / "Arte": Privilegia musei d'arte con percorsi per ragazzi, parchi di sculture all'aperto, laboratori creativi e quartieri con street art.
 
-    4. TIMELINE ORARIA, LOGISTICA E PARCHEGGI (ESPONENZIALE 10X):
+    4. DESCRIZIONI RICCHE ED APPROFONDITE (MANDATORIO: ZERO TESTI SCARSI O SUPERFICIALI):
+    - Ogni singola attivit� (Mattina, Pranzo, Pomeriggio) DEVE essere descritta con ALMENO 2-3 PARAGRAFI COMPLETI, ricchi di dettagli pratici, sensoriali e coinvolgenti.
+    - Specifica SEMPRE cosa faranno sia i bambini che gli adulti, i punti forti del luogo, le curiosit� segrete, le aree gioco e l'accessibilit� passeggini/servizi igienici.
+    - Per i RISTORANTI: indica SEMPRE 2-3 specialit� tipiche per gli adulti (es. primi piatti della tradizione, dolci fatti in casa) ed il menu dedicato ai bambini.
+    - Inserisci SEMPRE la stima dello spostamento (es. "?? Spostamento: 10 min in auto (3.5 km)") ed il nome del Parcheggio Reale Consigliato ("??? Parcheggio consigliato: ...").
+    - Inserisci SEMPRE l'indovinello o sfida per i bambini ("EXPLO_QUEST: ...").
+
+    5. TIMELINE ORARIA, LOGISTICA E PARCHEGGI:
     - Associa un'orario stimato a ciascuna tappa (es. "### 09:30 - 11:45 | Mattina: Visita a...").
     - Il ristorante del PRANZO deve trovarsi a MASSIMO 10-15 MINUTI D'AUTO o a piedi dalla tappa della MATTINA.
     - Specifica la stima dello spostamento (es. "?? Spostamento: 10 min in auto (3.5 km)").
