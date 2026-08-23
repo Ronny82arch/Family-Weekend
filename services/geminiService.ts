@@ -155,7 +155,8 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
             3. ### Pomeriggio: [Nome Reale Attivit� Pomeridiana]
           `;
           schedule = `
-    ### Mattina: Visita Guidata a Villa Borghese ed ai Giardini Segreti
+    ### Mattina: Visita Guidata a Villa Borghese ed ai Giardini Segreti a Roma
+    ?? **Localit�**: Roma (Centro Storico)
     VISUAL_SCENE: Giardini monumentali fioriti con fontane, viali alberati e percorsi panoramici
     GEO_LOCATION: Villa Borghese, Roma
     IMAGE_QUERY: Villa Borghese Roma parco monumentale
@@ -166,7 +167,8 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     ??? Parcheggio consigliato: Parcheggio Saba Villa Borghese (interrato con ascensori).
     EXPLO_QUEST: Cerca la meridiana ad acqua vicino all'Orologio del Pincio e scopri che ore segna!
     
-    ### ??? Pranzo: Trattoria Tradizionale Da Enzo al 29
+    ### ??? Pranzo: Trattoria Tradizionale Da Enzo al 29 a Roma
+    ?? **Localit�**: Roma (Quartiere Trastevere)
     VISUAL_SCENE: Pasta fresca tradizionale servita in un'accogliente trattoria tipica romana
     GEO_LOCATION: Trattoria Da Enzo al 29, Roma
     IMAGE_QUERY: Trattoria Da Enzo Roma pasta carbonara cacio e pepe
@@ -177,7 +179,8 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     ?? Spostamento: 12 min in auto o 15 min a piedi da Villa Borghese.
     ??? Parcheggio consigliato: Parcheggio Trastevere Piazza Belli.
 
-    ### Pomeriggio: Explora - Il Grande Museo Interattivo dei Bambini
+    ### Pomeriggio: Explora - Il Grande Museo Interattivo dei Bambini a Roma
+    ?? **Localit�**: Roma (Zona Flaminio)
     VISUAL_SCENE: Padiglione interattivo moderno con esperimenti scientifici, giochi d'acqua e percorsi tattili
     GEO_LOCATION: Explora Museo dei Bambini, Roma
     IMAGE_QUERY: Explora Museo dei Bambini Roma padiglione giochi
@@ -325,7 +328,9 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     - Se MOOD = "mountain" / "Montagna": Privilegia rifugi alpini accoglienti, malghe con animali, cabinovie panoramiche e sentieri montani facili per bimbi.
     - Se MOOD = "art" / "Arte": Privilegia musei d'arte con percorsi per ragazzi, parchi di sculture all'aperto, laboratori creativi e quartieri con street art.
 
-    4. DESCRIZIONI RICCHE ED APPROFONDITE (MANDATORIO: ZERO TESTI SCARSI O SUPERFICIALI):
+    4. REGOLA MANDATORIA LOCALIT� & DESCRIZIONI RICCHE:
+    - REGOLA LOCALIT� (TASSATIVO): In OGNI singola tappa e ristorante DEVI indicare SEMPRE ed ESPLICITAMENTE la Localit�/Comune preciso in cui si trova la tappa (es. "?? **Localit�**: Sirmione (BS)" oppure "?? **Localit�**: Valeggio sul Mincio (VR)" o "?? **Localit�**: Roma Centro Storico"). L'utente deve sempre sapere esattamente in che paese o comune si trova ciascuna attrazione.
+    - DESCRIZIONI DETTAGLIATE: Ogni singola attivit� DEVE essere descritta con ALMENO 2-3 PARAGRAFI COMPLETI, ricchi di dettagli pratici, sensoriali e coinvolgenti.
     - Ogni singola attivit� (Mattina, Pranzo, Pomeriggio) DEVE essere descritta con ALMENO 2-3 PARAGRAFI COMPLETI, ricchi di dettagli pratici, sensoriali e coinvolgenti.
     - Specifica SEMPRE cosa faranno sia i bambini che gli adulti, i punti forti del luogo, le curiosit� segrete, le aree gioco e l'accessibilit� passeggini/servizi igienici.
     - Per i RISTORANTI: indica SEMPRE 2-3 specialit� tipiche per gli adulti (es. primi piatti della tradizione, dolci fatti in casa) ed il menu dedicato ai bambini.
