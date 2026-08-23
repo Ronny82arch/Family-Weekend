@@ -265,8 +265,22 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     ? `\n    - VARIET� ED ANTI-RIPETIZIONE OBBLIGATORIA (RIGENERAZIONE): Il cliente sta rigenerando il piano. � SEVERAMENTE VIETATO ripetere gli stessi luoghi, musei o ristoranti gi� proposti nel piano precedente. Proponi nuove alternative REALI ed ORIGINALI nella zona.\n    PIANO PRECEDENTE DA EVITARE:\n${previousPlanText.substring(0, 800)}\n` 
     : "";
 
+  
+  // Calculate smart age pacing
+  const ages = prefs.children.map(c => parseInt(c.age) || 5);
+  const minAge = ages.length > 0 ? Math.min(...ages) : 6;
+  let agePacingInstruction = "";
+  if (minAge <= 3) {
+    agePacingInstruction = "PACING 0-3 ANNI (NEONATI/TODDLER): Percorsi 100% accessibili in passeggino, ritmi calmi, pause nanna silenziose dopo pranzo, tappe brevi e molte sosta relax.";
+  } else if (minAge <= 8) {
+    agePacingInstruction = "PACING 4-8 ANNI (BAMBINI): Tappe interattive ed entusiasmanti ogni 45-60 minuti, area gioco o parco verde obbligatorio dopo il pranzo, pausa merenda con gelato.";
+  } else {
+    agePacingInstruction = "PACING 9-17 ANNI (RAGAZZI/TEEN): Attivit� dinamiche e fotografiche ad alto impatto, parchi avventura o tecnologia, spazio all'autonomia e curiosit� stimolanti.";
+  }
+
+
   const prompt = `
-    Sei un Esperto Local Event Scout e Family Travel Agent con Verificatore di Fatti integrato. Scrivi in ${langName}.
+    Sei il miglior Family Travel Agent & Scout di Esperienze al mondo con Verificatore di Fatti integrato. Scrivi in ${langName}.
     
     1. IL CLIENTE & PREFERENZE:
     - ${locationDescription}
@@ -276,12 +290,15 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     - MOOD / VIBE SELEZIONATO: "${prefs.vibe || "Equilibrato"}"
     - ${verifiedEventHints}
 
-    2. DIRETTIVE RIGOROSE SUI 12 MOOD (COMPORTAMENTO OBBLIGATORIO):
-    - Se MOOD = "surprise" / "Sorprendimi": Mischia attrazioni insolite, luoghi segreti poco noti, curiosit� locali ed eventi inattesi per sorprendere la famiglia.
-    - Se MOOD = "nature" / "Natura": Privilegia parchi naturali, oasi WWF, fattorie didattiche, passeggiate nei boschi, fiume e riserve florofaunistiche.
-    - Se MOOD = "culture" / "Cultura": Privilegia castelli, musei interattivi per bambini, borghi storici, parchi archeologici ed installazioni culturali.
+    2. PACING ADATTIVO SULL'ET� DEI FIGLI (CRITICO):
+    - ${agePacingInstruction}
+
+    3. DIRETTIVE RIGOROSE SUI 12 MOOD:
+    - Se MOOD = "surprise" / "Sorprendimi": Mischia attrazioni insolite, luoghi segreti poco noti, curiosit� storiche locali ed eventi inattesi.
+    - Se MOOD = "nature" / "Natura": Privilegia parchi naturali, oasi WWF, fattorie didattiche, passeggiate nei boschi, percorsi fluviali e riserve.
+    - Se MOOD = "culture" / "Cultura": Privilegia castelli monumentali, musei interattivi per bambini, borghi storici, parchi archeologici.
     - Se MOOD = "adventure" / "Avventura": Privilegia parchi avventura con percorsi sospesi, zip-line, labirinti di siepi, orienteering ed escursioni dinamiche.
-    - Se MOOD = "magic" / "Fiabe & Magia": Privilegia luoghi incantati, boschi delle fiabe, castelli fiabeschi, spettacoli di magia e parchi tematici fantastici.
+    - Se MOOD = "magic" / "Fiabe & Magia": Privilegia boschi incantati, villaggi delle fiabe, castelli fiabeschi, spettacoli di magia e parchi tematici fantastici.
     - Se MOOD = "food" / "Cibo & Relax": Privilegia agriturismi tradizionali, trattorie a km zero con area giochi, picnic in vigneto o parchi e degustazioni family.
     - Se MOOD = "sport" / "Sport": Privilegia percorsi ciclabili family-friendly, noleggio risci�/bici, trekking leggeri panoramici e centri outdoor.
     - Se MOOD = "relax" / "Relax": Privilegia ritmi distesi, ampi parchi urbani fioriti, passeggiate panoramiche su lungolago/fiumi ed aree verde riposanti.
@@ -290,29 +307,27 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     - Se MOOD = "mountain" / "Montagna": Privilegia rifugi alpini accoglienti, malghe con animali, cabinovie panoramiche e sentieri montani facili per bimbi.
     - Se MOOD = "art" / "Arte": Privilegia musei d'arte con percorsi per ragazzi, parchi di sculture all'aperto, laboratori creativi e quartieri con street art.
 
-    3. PROSSIMIT� LOGISTICA DEI RISTORANTI (CRITICO):
-    - Il ristorante consigliato per il PRANZO deve trovarsi a MASSIMO 10-15 MINUTI D'AUTO (o a piedi) dall'attivit� della MATTINA.
-    - Il ristorante per la CENA (se prevista) deve trovarsi nelle immediate vicinanze dell'attivit� del POMERIGGIO o lungo la rotta del rientro.
-    - Specifica sempre la vicinanza (es. "A soli 5 minuti a piedi da Villa Borghese...").
+    4. TIMELINE ORARIA, LOGISTICA E PARCHEGGI (ESPONENZIALE 10X):
+    - Associa un'orario stimato a ciascuna tappa (es. "### 09:30 - 11:45 | Mattina: Visita a...").
+    - Il ristorante del PRANZO deve trovarsi a MASSIMO 10-15 MINUTI D'AUTO o a piedi dalla tappa della MATTINA.
+    - Specifica la stima dello spostamento (es. "?? Spostamento: 10 min in auto (3.5 km)").
+    - Indica un **Parcheggio Reale Consigliato** vicino a ciascuna destinazione (es. "??? Parcheggio consigliato: Parcheggio Saba Piazza VIII Agosto").
 
-    4. PROTOCOLLO ANTI-ALLUCINAZIONE & VERIFICA DATI (CRITICO - ZERO ERRORE):
-    - NO ALLUCINAZIONI: � SEVERAMENTE VIETATO inventare nomi di musei, parchi, ristoranti, sagre o eventi non esistenti o chiusi.
-    - VERIFICA GOOGLE MAPS / SEARCH: Ogni luogo raccomandato DEVE essere un'attivit� REALE e realmente presente su Google Maps nel raggio di ${prefs.radiusKm} KM.
-    - VERIFICA ORARI E GIORNI DI CHIUSURA: Controlla che le attrazioni consigliate non siano chiuse nel giorno indicato (es. musei chiusi il Luned�, ristoranti chiusi a pranzo).
-    - MANIFESTAZIONI E SAGRE REALI: Esegui una ricerca su Google Search per verificare se esistono sagre, mostre o eventi REALI e confermati per il weekend del ${prefs.selectedDate}.
-      * Se trovi un evento reale confermato, includilo specificando il nome esatto dell'evento.
-      * Se NON trovi un evento confermato per quel weekend, NON inventarlo! Inserisci invece attrazioni "Evergreen" (parchi naturali, castelli, musei permanenti) che sono sempre aperte e scrivi esplicitamente "(Attivit� Evergreen verificata)".
+    5. MICRO-MISSIONE PER BAMBINI (EXPLO_QUEST):
+    - Per ogni attivit�, inserisci una breve caccia al tesoro o indovinello legato al luogo reale (es. "EXPLO_QUEST: Trova la fontana col leone e conta quante finestre ha il palazzo!").
+
+    6. PROTOCOLLO ANTI-ALLUCINAZIONE & VERIFICA DATI:
+    - NO ALLUCINAZIONI: � SEVERAMENTE VIETATO inventare nomi di luoghi, ristoranti o eventi non esistenti. Ogni luogo DEVE essere presente su Google Maps nel raggio di ${prefs.radiusKm} KM.
     - STRATEGIA LOGISTICA: ${strategyInstruction}
     ${previousPlanClause}
 
-    5. REGOLE DI FORMATTAZIONE (STRICT):
+    7. REGOLE DI FORMATTAZIONE:
     - Usa Markdown.
-    - Titoli attivit� con "### "
+    - Titoli attivit� con "### " e fascia oraria.
     - Nomi dei luoghi in "**Grassetto**" (Es: **Parco Sigurt�**)
     - Visual scene sotto i titoli: "VISUAL_SCENE: [Descrizione breve per immagine]"
     - GEO_LOCATION sotto la visual scene: "GEO_LOCATION: [Nome Reale Luogo, Citt�]"
-    - SE UN GIORNO E' IMPOSTATO SU "MATTINA", NON GENERARE ATTIVITA' POMERIDIANE.
-    - SE UN GIORNO E' IMPOSTATO SU "POMERIGGIO", NON GENERARE ATTIVITA' MATTUTINE.
+    - EXPLO_QUEST sotto la GEO_LOCATION: "EXPLO_QUEST: [Indovinello/Caccia al tesoro]"
 
     ## Intro
     [Inspirational intro]
@@ -324,7 +339,7 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     ${getDayPrompt(terms.sun, prefs.sundayMode)}
 
     ### DATA_MARKERS
-    [Fondamentale per la mappa: MARKER: Lat, Lon, Titolo]
+    [MARKER: Lat, Lon, Titolo]
   `;
 
   const config: any = {
@@ -662,4 +677,54 @@ export const generateSeasonalStory = async (season: string, locations: string[],
         });
         return response.text || "Una stagione indimenticabile ricca di avventure...";
     });
+};
+
+export const swapSingleActivity = async (
+  currentTitle: string,
+  dayTitle: string,
+  timeSlot: string,
+  prefs: FamilyPreferences
+): Promise<{ title: string; content: string; visualLine: string; geoLocation?: string }> => {
+  const ai = getGenAIClient();
+  const langName = getLanguageName(prefs.language);
+  const locName = prefs.manualLocation || "Italia";
+
+  const prompt = `
+    Sei un Esperto Local Travel Scout per Famiglie. Scrivi in ${langName}.
+    
+    TASK: Sostituisci l'attivit� corrente con una NUOVA ATTIVIT� ALTERNATIVA REALE ed ENTUSIASMANTE.
+    - ATTIVIT� DA SOSTITUIRE: "${currentTitle}"
+    - GIORNO: ${dayTitle} (${timeSlot})
+    - DESTINAZIONE / ZONA: ${locName} (Raggio: ${prefs.radiusKm} KM)
+    - MOOD: ${prefs.vibe || "Equilibrato"}
+    - ETA BAMBINI: ${prefs.children.map(c => c.age + ' anni').join(', ')}
+
+    REGOLE RIGIDE:
+    1. La nuova attivit� DEVE essere un luogo REALE ed esistente su Google Maps diverso da quello da sostituire.
+    2. Mantieni lo stesso formato:
+       ### [Fascia Oraria]: [Nome Reale Nuova Attivit�]
+       VISUAL_SCENE: [Descrizione visiva breve]
+       GEO_LOCATION: [Nome Reale Luogo, Citt�]
+       [2-3 frasi coinvolgenti con dettagli pratici, parcheggio ed una sfida per i bambini]
+  `;
+
+  return retryWithBackoff(async () => {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash-lite',
+      contents: { parts: [{ text: prompt }] },
+      config: { tools: [{ googleMaps: {} }, { googleSearch: {} }] }
+    });
+
+    const text = response.text || "";
+    const lines = text.trim().split('\n');
+    const titleLine = lines.find(l => l.includes('###')) || `### ${timeSlot}: Nuova Attivit� a ${locName}`;
+    const visualLine = lines.find(l => l.includes('VISUAL_SCENE:')) || "VISUAL_SCENE: Luogo panoramico";
+    const geoLine = lines.find(l => l.includes('GEO_LOCATION:'));
+    const content = lines.filter(l => !l.includes('###') && !l.includes('VISUAL_SCENE:') && !l.includes('GEO_LOCATION:')).join('\n').trim();
+
+    const title = titleLine.replace(/###\s*/, '').trim();
+    const geoLocation = geoLine ? geoLine.replace(/GEO_LOCATION:/i, '').trim() : `${title}, ${locName}`;
+
+    return { title, content, visualLine, geoLocation };
+  });
 };
