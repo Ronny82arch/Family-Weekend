@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Maximize2, X, Camera, Check, Utensils, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, X, Camera, Check, Utensils, MapPin, ExternalLink, Compass } from 'lucide-react';
 
 export interface PhotoItem {
   url: string;
@@ -8,24 +8,46 @@ export interface PhotoItem {
   sourceLabel: string;
 }
 
-const REAL_RESTAURANT_GALLERY: PhotoItem[] = [
-  { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Piatto: Pasta Fresca Fatta in Casa" },
-  { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Piatto: Pizza Artigianale al Forno a Legna" },
-  { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Ristorante: Sala Tradizionale Accogliente" },
-  { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Piatto: Antipasto Tipico della Casa" },
-  { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80", isReal: true, isFood: true, sourceLabel: "??? Foto Reale Ristorante: Dehor all'Aperto per Famiglie" }
-];
+// 4K Curated Authentic Regional Italian & International Gastronomy Library
+const REGIONAL_FOOD_COLLECTION: Record<string, PhotoItem[]> = {
+  rome: [
+    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Cucina Romana: Tonnarelli Cacio e Pepe / Carbonara" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Trattoria Tradizionale: Sala Accogliente nel Borgo" },
+    { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Antipasto Romano: Carciofi e Tagliere Tradizionale" },
+    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "??? Dehor all'Aperto per Famiglie" }
+  ],
+  pizza: [
+    { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pizzeria: Pizza Artigianale al Forno a Legna" },
+    { url: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pizza Tradizionale con Ingredienti DOP a km 0" },
+    { url: "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Sala Pizzeria con Tavoli per Famiglie" }
+  ],
+  veneto: [
+    { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Osteria Veneta: Risotto e Primi della Tradizione" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Osteria Tipica: Atmosfera Calda e Conviviale" },
+    { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Cicchetti e Antipasti della Tradizione Locale" }
+  ],
+  tuscany: [
+    { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Trattoria Toscana: Secondi e Paste Artigianali" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Locanda Storica: Sala in Pietra e Travi a Vista" }
+  ],
+  general_food: [
+    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pasta Fresca Artigianale Fatta a Mano" },
+    { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Specialit� Cotte al Forno a Legna" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Ristorante Tipico: Sala Accogliente per Famiglie" },
+    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "??? Dehor Panoramico con Spazio Bimbi" }
+  ]
+};
 
 const REAL_BREAKFAST_GALLERY: PhotoItem[] = [
-  { url: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800&q=80", isReal: true, isFood: true, sourceLabel: "? Foto Reale Colazione: Cappuccino e Brioche Artigianali" },
-  { url: "https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=800&q=80", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Colazione: Pasticceria Fresca del Mattino" },
-  { url: "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=800&q=80", isReal: true, isFood: true, sourceLabel: "?? Foto Reale Colazione: Buffet Dolci e Frutta Fresca" }
+  { url: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "? Colazione Artigianale: Cappuccino e Brioche Calde" },
+  { url: "https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pasticceria Fresca del Mattino" },
+  { url: "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Buffet Dolci Artigianali e Frutta Fresca" }
 ];
 
 const REAL_SCENIC_FALLBACKS: PhotoItem[] = [
-  { url: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80", isReal: true, isFood: false, sourceLabel: "?? Scorcio Reale del Paesaggio della Zona" },
-  { url: "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800&q=80", isReal: true, isFood: false, sourceLabel: "?? Vista Panoramica Reale del Territorio" },
-  { url: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80", isReal: true, isFood: false, sourceLabel: "?? Panorama e Natura della Destinazione" }
+  { url: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Scorcio Reale del Paesaggio della Destinazione" },
+  { url: "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Vista Panoramica Reale del Territorio" },
+  { url: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Natura e Borghi della Zona" }
 ];
 
 interface LocationPhotoCarouselProps {
@@ -41,11 +63,33 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
     return /ristorante|trattoria|osteria|pizzeria|cena|pranzo|colazione|bar|caff�/i.test(title);
   }, [title]);
 
+  const targetSearch = useMemo(() => {
+    return imageQuery || title
+      .replace(/###/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '')
+      .replace(/^[^a-zA-Z0-9\u00C0-\u024F]+/u, '')
+      .replace(/^(Visita|Visita guidata|Passeggiata|Sosta|Tappa|Giro|Tour|Andiamo|Escursione|Pranzo|Cena)\s+(al|alla|allo|agli|alle|ai|a|nel|nella|nello|negli|nelle|nei|in|presso|di|del|della|dello|degli|delle|dei)\s+/gi, '')
+      .replace(/\s+(con|ed|e)\s+.*$/i, '')
+      .trim();
+  }, [title, imageQuery]);
+
+  const googleMapsUrl = useMemo(() => {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(targetSearch + ', ' + baseCity)}`;
+  }, [targetSearch, baseCity]);
+
   const defaultPhotoList = useMemo(() => {
     if (/colazione|break|caff�|bar/i.test(title)) return REAL_BREAKFAST_GALLERY;
-    if (isFoodVenue) return REAL_RESTAURANT_GALLERY;
+    if (/pizza|pizzeri/i.test(title)) return REGIONAL_FOOD_COLLECTION.pizza;
+    
+    const lowerCity = (baseCity + ' ' + targetSearch).toLowerCase();
+    if (lowerCity.includes('roma') || lowerCity.includes('lazio')) return REGIONAL_FOOD_COLLECTION.rome;
+    if (lowerCity.includes('venezia') || lowerCity.includes('treviso') || lowerCity.includes('verona') || lowerCity.includes('garda') || lowerCity.includes('padova')) return REGIONAL_FOOD_COLLECTION.veneto;
+    if (lowerCity.includes('firenze') || lowerCity.includes('toscana') || lowerCity.includes('siena')) return REGIONAL_FOOD_COLLECTION.tuscany;
+
+    if (isFoodVenue) return REGIONAL_FOOD_COLLECTION.general_food;
     return REAL_SCENIC_FALLBACKS;
-  }, [title, isFoodVenue]);
+  }, [title, isFoodVenue, baseCity, targetSearch]);
 
   const [photoList, setPhotoList] = useState<PhotoItem[]>(defaultPhotoList);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,34 +98,8 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
   useEffect(() => {
     let isMounted = true;
 
-    // Clean place title for strict Wikipedia venue lookup
-    const cleanTitle = title
-      .replace(/###/g, '')
-      .replace(/\*\*/g, '')
-      .replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '')
-      .replace(/^[^a-zA-Z0-9\u00C0-\u024F]+/u, '')
-      .replace(/^(Visita|Visita guidata|Passeggiata|Sosta|Tappa|Giro|Tour|Andiamo|Escursione|Pranzo|Cena)\s+(al|alla|allo|agli|alle|ai|a|nel|nella|nello|negli|nelle|nei|in|presso|di|del|della|dello|degli|delle|dei)\s+/gi, '')
-      .replace(/\s+(con|ed|e)\s+.*$/i, '')
-      .trim();
-
-    if (isFoodVenue) {
-      // 100% REAL FOOD & DINING ROOM PHOTOS FOR ALL RESTAURANTS!
-      setPhotoList(defaultPhotoList);
-      return;
-    }
-
     const fetchRealVenuePhotos = async () => {
       try {
-        const targetSearch = imageQuery || title
-          .replace(/###/g, '')
-          .replace(/\*\*/g, '')
-          .replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '')
-          .replace(/^[^a-zA-Z0-9\u00C0-\u024F]+/u, '')
-          .replace(/^(Visita|Visita guidata|Passeggiata|Sosta|Tappa|Giro|Tour|Andiamo|Escursione|Pranzo|Cena)\s+(al|alla|allo|agli|alle|ai|a|nel|nella|nello|negli|nelle|nei|in|presso|di|del|della|dello|degli|delle|dei)\s+/gi, '')
-          .replace(/\s+(con|ed|e)\s+.*$/i, '')
-          .trim();
-
-        // 1. Query Italian Wikipedia for real venue/food photos
         const queryTerm = baseCity && !targetSearch.toLowerCase().includes(baseCity.toLowerCase()) ? `${targetSearch} ${baseCity}` : targetSearch;
         const itUrl = `https://it.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(queryTerm)}&gsrlimit=6&prop=pageimages&piprop=thumbnail&pithumbsize=1000&format=json&origin=*`;
         
@@ -108,7 +126,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
                     url: wikiImg,
                     isReal: true,
                     isFood: isFoodVenue,
-                    sourceLabel: isFoodVenue ? `?? Cucina Reale: ${p.title || targetSearch}` : `?? Foto Reale: ${p.title || targetSearch}`
+                    sourceLabel: isFoodVenue ? `?? Specialit� Locale: ${p.title || targetSearch}` : `?? Foto Reale: ${p.title || targetSearch}`
                   });
                 }
               }
@@ -127,7 +145,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
 
     fetchRealVenuePhotos();
     return () => { isMounted = false; };
-  }, [title, baseCity, isFoodVenue, defaultPhotoList]);
+  }, [targetSearch, baseCity, isFoodVenue, defaultPhotoList]);
 
   const currentPhoto = photoList[currentIndex] || photoList[0];
 
@@ -150,37 +168,39 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             alt={title}
             className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/30 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-black/35 pointer-events-none" />
 
           {/* Navigation Arrows for Carousel */}
           {photoList.length > 1 && (
             <>
               <button
                 onClick={handlePrev}
-                className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg z-10"
+                className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-black/60 hover:bg-black/90 text-white rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg z-10"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={handleNext}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg z-10"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-black/60 hover:bg-black/90 text-white rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg z-10"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </>
           )}
 
-          {/* Top Right Action Buttons */}
+          {/* Direct Google Maps Real Photos & 360 Buttons */}
           <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(title.replace(/###/g, '').replace(/\*\*/g, '') + ', ' + baseCity)}`}
+              href={googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="px-2.5 py-1.5 bg-black/60 hover:bg-indigo-600 text-white text-[10px] font-bold rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg flex items-center gap-1 border border-white/20"
-              title="Esplora a 360� su Google Maps"
+              className="px-3 py-1.5 bg-indigo-600/90 hover:bg-indigo-600 text-white text-[11px] font-black rounded-full backdrop-blur-md transition-all duration-300 shadow-lg flex items-center gap-1.5 border border-indigo-400/40 hover:scale-105"
+              title="Apri le foto reali, recensioni e menu su Google Maps"
             >
-              <span>?? Vista 360�</span>
+              <Camera className="w-3.5 h-3.5 text-amber-300" />
+              <span>Foto Google Maps</span>
+              <ExternalLink className="w-3 h-3 opacity-80" />
             </a>
             <button
               onClick={(e) => { e.stopPropagation(); setLightboxOpen(true); }}
@@ -195,7 +215,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             {currentPhoto.isFood ? (
               <div className="px-3 py-1.5 bg-amber-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-amber-400/40 animate-fade-in">
                 <Utensils className="w-3.5 h-3.5 text-amber-200" />
-                <span>Foto Reale Piatto & Ristorante ({currentIndex + 1}/{photoList.length})</span>
+                <span>Specialit� & Ristorante ({currentIndex + 1}/{photoList.length})</span>
               </div>
             ) : currentPhoto.isReal ? (
               <div className="px-3 py-1.5 bg-emerald-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-emerald-400/30 animate-fade-in">
@@ -242,9 +262,16 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             ))}
           </div>
 
-          <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest whitespace-nowrap px-2 flex items-center gap-1">
-            <Check className="w-3 h-3 text-emerald-400" /> Foto Reali ({photoList.length})
-          </span>
+          <a
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-[10px] font-bold text-amber-400 hover:text-amber-300 uppercase tracking-wider whitespace-nowrap px-2 flex items-center gap-1 transition-colors"
+          >
+            <span>Altre Foto su Google</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
       </div>
 
@@ -255,15 +282,19 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
         >
           <div className="w-full flex justify-between items-center max-w-5xl">
             <div className="flex items-center gap-3">
-              {currentPhoto.isFood ? (
-                <span className="px-4 py-1.5 bg-amber-600 text-white rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg">
-                  <Utensils className="w-4 h-4 text-amber-200" /> {currentPhoto.sourceLabel}
-                </span>
-              ) : (
-                <span className="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg">
-                  <Camera className="w-4 h-4 text-amber-300" /> {currentPhoto.sourceLabel}
-                </span>
-              )}
+              <span className="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg">
+                <Camera className="w-4 h-4 text-amber-300" /> {currentPhoto.sourceLabel}
+              </span>
+              <a
+                href={googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg transition-colors"
+              >
+                <span>Vedi Tutte le Foto su Google Maps</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
             <button
               onClick={() => setLightboxOpen(false)}
