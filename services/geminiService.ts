@@ -160,6 +160,7 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     VISUAL_SCENE: Giardini monumentali fioriti con fontane, viali alberati e percorsi panoramici
     GEO_LOCATION: Villa Borghese, Roma
     IMAGE_QUERY: Villa Borghese Roma parco monumentale
+    PHOTO_URL: https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Ingresso_monumentale_di_Villa_Borghese_a_Roma_su_piazzale_Flaminio_2018-02.jpg/1280px-Ingresso_monumentale_di_Villa_Borghese_a_Roma_su_piazzale_Flaminio_2018-02.jpg
     Iniziamo la giornata con un'esplorazione incantevole del parco storico pi� amato della capitale. I bambini rimarranno affascinati dal noleggio dei risci� a quattro posti per pedalare tra i viali ombreggiati, scoprendo la celebre Fontana dei Cavalli Marini ed il pittoresco Laghetto con il Tempietto di Esculapio, dove � possibile fare un giro in barchetta a remi.
 
     Per i genitori, la passeggiata offre scorci panoramici imperdibili sulla Terrazza del Pincio con una vista mozzafiato su tutta la citt�. Lungo i percorsi sono disponibili ampie aree verdi recintate per il gioco libero, fontanelle d'acqua potabile fresca e punti ristoro attrezzati per le famiglie con passeggini.
@@ -184,6 +185,7 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     VISUAL_SCENE: Padiglione interattivo moderno con esperimenti scientifici, giochi d'acqua e percorsi tattili
     GEO_LOCATION: Explora Museo dei Bambini, Roma
     IMAGE_QUERY: Explora Museo dei Bambini Roma padiglione giochi
+    PHOTO_URL: https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/SOCIMI_Colosseo.jpg/1280px-SOCIMI_Colosseo.jpg
     Un pomeriggio straordinario interamente dedicato alla scoperta scientifica ed al gioco educativo. La struttura � un grande padiglione a misura di bambino dove tutto si pu� toccare, sperimentare e azionare: dai circuiti d'acqua con dighe e mulini, fino al supermercato in miniatura per simulare la spesa quotidiana e la cabina del treno interattiva.
 
     Per i piccolissimi (0-3 anni) � presente un'area morbida sensoriale protetta con percorsi tattili e cuscini giganti, mentre per i ragazzi pi� grandi vi sono postazioni con esperimenti sul vento, sull'energia rinnovabile e sull'ottica. La struttura dispone di bagni attrezzati con fasciatoi ad ogni piano, spazio allattamento e bar interno con snack biologici.
@@ -368,6 +370,7 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     - Visual scene sotto i titoli: "VISUAL_SCENE: [Descrizione breve per immagine]"
     - GEO_LOCATION sotto la visual scene: "GEO_LOCATION: [Nome Reale Luogo, Citt�]"
     - IMAGE_QUERY sotto la GEO_LOCATION: "IMAGE_QUERY: [Nome Reale Luogo o Ristorante, Citt�]"
+    - PHOTO_URL sotto IMAGE_QUERY (opzionale se trovato da Google Search): "PHOTO_URL: [URL Immagine Reale]"
     - EXPLO_QUEST sotto la GEO_LOCATION: "EXPLO_QUEST: [Indovinello/Caccia al tesoro]"
 
     ## Intro

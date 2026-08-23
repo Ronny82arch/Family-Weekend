@@ -714,11 +714,13 @@ export const PlanResultDisplay: React.FC<PlanResultProps> = ({ plan, preferences
             const visualLine = lines.find(l => l.includes('VISUAL_SCENE:'));
             const geoLine = lines.find(l => l.includes('GEO_LOCATION:'));
         const imgQueryLine = lines.find(l => l.includes('IMAGE_QUERY:'));
-            const content = lines.filter(l => !l.includes('VISUAL_SCENE:') && !l.includes('GEO_LOCATION:') && !l.includes('IMAGE_QUERY:') && l !== rawTitle && l.trim().length > 0).join('\n');
+        const photoUrlLine = lines.find(l => l.includes('PHOTO_URL:'));
+            const content = lines.filter(l => !l.includes('VISUAL_SCENE:') && !l.includes('GEO_LOCATION:') && !l.includes('IMAGE_QUERY:') && !l.includes('PHOTO_URL:') && l !== rawTitle && l.trim().length > 0).join('\n');
             const displayTitle = rawTitle.replace(/:$/, '');
             const geoLocation = geoLine ? geoLine.replace(/GEO_LOCATION:/i, '').trim() : undefined;
         const imageQuery = imgQueryLine ? imgQueryLine.replace(/IMAGE_QUERY:/i, '').trim() : undefined;
-            return { title: displayTitle, content, visualLine, geoLocation, imageQuery };
+        const photoUrl = photoUrlLine ? photoUrlLine.replace(/PHOTO_URL:/i, '').trim() : undefined;
+            return { title: displayTitle, content, visualLine, geoLocation, imageQuery, photoUrl };
         })
         .filter(a => a.title.length < 100 && !a.title.toUpperCase().includes("DATA_MARKER")); 
     }
