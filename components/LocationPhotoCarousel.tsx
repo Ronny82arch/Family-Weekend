@@ -60,9 +60,11 @@ export interface PhotoItem {
 interface LocationPhotoCarouselProps {
   title: string;
   className?: string;
+  familyAvatars?: string[];
+  baseCity?: string;
 }
 
-export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ title, className = 'w-full h-64 sm:h-72' }) => {
+export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ title, className = 'w-full h-64 sm:h-72', familyAvatars = [], baseCity = 'Italia' }) => {
   const basePhotos = useMemo(() => getBasePhotos(title), [title]);
 
   const [photoList, setPhotoList] = useState<PhotoItem[]>(() => {
@@ -169,12 +171,24 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             </>
           )}
 
-          <button
-            onClick={(e) => { e.stopPropagation(); setLightboxOpen(true); }}
-            className="absolute top-3 right-3 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg z-10"
-          >
-            <Maximize2 className="w-4 h-4" />
-          </button>
+          <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(title.replace(/###/g, '').replace(/\*\*/g, '') + ', ' + baseCity)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="px-2.5 py-1.5 bg-black/60 hover:bg-indigo-600 text-white text-[10px] font-bold rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg flex items-center gap-1 border border-white/20"
+              title="Esplora a 360� su Google Maps"
+            >
+              <span>?? Vista 360�</span>
+            </a>
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightboxOpen(true); }}
+              className="p-2 bg-black/50 hover:bg-black/80 text-white rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          </div>
 
           {/* EXPLICIT BADGE: Foto Reale vs Foto di Ispirazione */}
           <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
@@ -190,6 +204,19 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
               </div>
             )}
           </div>
+        
+          {/* Family Avatar Souvenir Overlay */}
+          {familyAvatars.length > 0 && (
+            <div className="absolute bottom-3 right-3 z-10 flex items-center -space-x-2 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20 shadow-xl pointer-events-auto">
+              <span className="text-[9px] font-black text-amber-300 mr-1.5 uppercase tracking-wider">Foto Ricordo</span>
+              {familyAvatars.slice(0, 3).map((url, i) => (
+                <div key={i} className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-slate-800 shadow">
+                  <img src={url} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
+
         </div>
 
         {/* Thumbnail bar */}
