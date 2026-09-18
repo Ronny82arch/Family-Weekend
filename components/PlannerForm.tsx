@@ -360,7 +360,7 @@ const AvatarCreatorModal: React.FC<{
 
             const hatDescription = config.headwear && config.headwear !== 'none' ? `wearing a ${config.headwear}` : 'no hat';
 
-            const prompt = `cute 3D Pixar character portrait headshot of a friendly ${subject}, Disney Pixar animation movie style, beautiful open big bright ${config.eyeColor || config.eyeStyle || 'brown'} eyes, warm happy smile, ${config.hairStyle} style with ${config.hairTexture} texture ${config.hairColor} hair, ${config.skinColor} skin tone ${config.freckles ? 'with cute freckles' : ''}, ${config.facialHair !== 'none' ? 'with ' + config.facialHair : ''}, wearing ${config.clothingColor} ${config.clothingStyle}, ${config.accessory !== 'none' ? 'wearing ' + config.accessory + ' glasses' : ''}, ${hatDescription}, soft studio lighting, 8k cinematic 3D render, pure clean solid background`;
+            const prompt = `cute 3D Pixar character portrait headshot of a friendly ${subject}, Disney Pixar animation movie style, beautiful open big bright ${config.eyeColor || config.eyeStyle || 'brown'} eyes, warm happy smile, ${config.hairStyle} style with ${config.hairTexture} texture ${config.hairColor} hair, ${config.skinColor} skin tone ${config.freckles ? 'with cute freckles' : ''}, ${config.facialHair !== 'none' ? 'with ' + config.facialHair : ''}, wearing ${config.clothingColor} ${config.clothingStyle}, ${config.accessory !== 'none' ? 'wearing ' + config.accessory + ' glasses' : ''}, ${hatDescription}, soft studio lighting, 8k cinematic 3D render, pure clean solid background, seed ${Date.now()}`;
 
             const role = activeTab === 'adults' ? `Adult ${activeIndex + 1}` : `Child ${activeIndex + 1}`;
             const url = await generateFamilyMemberAvatar(prompt, role);

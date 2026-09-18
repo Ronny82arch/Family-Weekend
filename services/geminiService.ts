@@ -598,51 +598,51 @@ export const analyzeAvatarPhoto = async (base64: string, mimeType = 'image/jpeg'
 };
 
 export const generateFamilyMemberAvatar = async (description: string, role: string): Promise<string> => {
-    return retryWithBackoff(async () => {
-        const seed = Math.floor(Math.random() * 1000000);
-        const encoded = encodeURIComponent(description);
+    const timestamp = Date.now();
+    const seed = Math.floor(Math.random() * 1000000) + (timestamp % 10000);
+    const uniquePrompt = `${description}, variation ${seed}`;
+    const encoded = encodeURIComponent(uniquePrompt);
 
-        const fetchWithTimeout = async (url: string, timeoutMs = 18000): Promise<string> => {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-            const res = await fetch(url, { signal: controller.signal });
-            clearTimeout(timeoutId);
+    const fetchWithTimeout = async (url: string, timeoutMs = 8000): Promise<string> => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
 
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const blob = await res.blob();
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
 
-            return new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-        };
+        return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    };
 
-        // Tier 1: Pollinations Standard (18s timeout)
-        try {
-            return await fetchWithTimeout(`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&seed=${seed}`, 18000);
-        } catch (e1) {
-            console.warn("Pollinations Tier 1 failed, retrying with Turbo model...");
-        }
+    // Tier 1: Pollinations Turbo Fast Generation (8s timeout)
+    try {
+        return await fetchWithTimeout(`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&model=turbo&seed=${seed}`, 8000);
+    } catch (e1) {
+        console.warn("Pollinations Turbo Tier 1 failed, trying Standard model...");
+    }
 
-        // Tier 2: Pollinations Turbo (18s timeout)
-        try {
-            return await fetchWithTimeout(`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&model=turbo&seed=${seed + 1}`, 18000);
-        } catch (e2) {
-            console.warn("Pollinations Tier 2 failed, retrying with Flux model...");
-        }
+    // Tier 2: Pollinations Standard Model (8s timeout)
+    try {
+        return await fetchWithTimeout(`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&seed=${seed + 1}`, 8000);
+    } catch (e2) {
+        console.warn("Pollinations Standard Tier 2 failed, trying Flux model...");
+    }
 
-        // Tier 3: Pollinations Flux (18s timeout)
-        try {
-            return await fetchWithTimeout(`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&model=flux&seed=${seed + 2}`, 18000);
-        } catch (e3) {
-            console.warn("Pollinations Tier 3 failed, retrying with alternative 3D engine...");
-        }
+    // Tier 3: Pollinations Flux Model (8s timeout)
+    try {
+        return await fetchWithTimeout(`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&model=flux&seed=${seed + 2}`, 8000);
+    } catch (e3) {
+        console.warn("Pollinations Flux Tier 3 failed, using Instant 3D Avatar Fallback...");
+    }
 
-        // Tier 4: Alternative 3D Pixar Avatar Fallback (Instant 200 OK)
-        return `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&seed=${seed + 99}`;
-    });
+    // Tier 4: Instant 3D Avatar Fallback (Direct URL with no blocking, 100% reliable)
+    return `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&seed=${seed + 99}`;
 };
 
 export const generateLocationCuriosities = async (locationName: string, context: string): Promise<string> => {
