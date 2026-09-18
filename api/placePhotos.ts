@@ -1,5 +1,16 @@
 export const config = { maxDuration: 15 };
 
+interface RealPhotoResult {
+  url: string;
+  title: string;
+  source: string;
+  width?: number;
+  height?: number;
+}
+
+// In-memory cache for serverless instance
+const memoryCache = new Map<string, RealPhotoResult[]>();
+
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,99 +25,144 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const query = req.query?.query || req.query?.q || '';
-  if (!query || typeof query !== 'string' || query.trim().length < 2) {
+  const rawQuery = req.query?.query || req.query?.q || '';
+  if (!rawQuery || typeof rawQuery !== 'string' || rawQuery.trim().length < 2) {
     return res.status(400).json({ error: 'Missing query parameter', photos: [] });
   }
 
-  const userKey = req.query?.userKey || req.headers?.['x-user-key'] || '';
-  const serverKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.API_KEY || '';
-  const apiKey = (typeof userKey === 'string' && userKey.trim().length > 0) ? userKey.trim() : serverKey;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'Server API key not configured', photos: [] });
+  const query = rawQuery.trim();
+  const cacheKey = query.toLowerCase();
+
+  if (memoryCache.has(cacheKey)) {
+    return res.status(200).json({
+      photos: memoryCache.get(cacheKey),
+      source: 'cache',
+      place: query,
+    });
   }
 
   try {
-    // Step 1: Text Search to find the place and get photo references
-    const searchResponse = await fetch('https://places.googleapis.com/v1/places:searchText', {
-      method: 'POST',
+    // ═══════════════════════════════════════════════════════════════
+    // 100% FREE, PERMANENT REAL PHOTO SEARCH (DuckDuckGo Real Web Images)
+    // No API keys, no 90-day limits, no credit card, no Google Cloud!
+    // ═══════════════════════════════════════════════════════════════
+    const tokenRes = await fetch('https://duckduckgo.com/?q=' + encodeURIComponent(query), {
       headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': apiKey,
-        'X-Goog-FieldMask': 'places.id,places.displayName,places.photos,places.formattedAddress',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7',
       },
-      body: JSON.stringify({
-        textQuery: query,
-        languageCode: 'it',
-        maxResultCount: 1,
-      }),
     });
 
-    if (!searchResponse.ok) {
-      const errBody = await searchResponse.text();
-      console.error(`Places Text Search failed (${searchResponse.status}):`, errBody);
-      return res.status(searchResponse.status).json({ 
-        error: `Places API error: ${searchResponse.status}`, 
-        details: errBody,
-        photos: [] 
+    if (!tokenRes.ok) {
+      throw new Error(`Token fetch failed: ${tokenRes.status}`);
+    }
+
+    const tokenHtml = await tokenRes.text();
+    const match = tokenHtml.match(/vqd=([0-9-]+)/);
+
+    if (!match || !match[1]) {
+      // Fallback: search on Wikipedia pageimages
+      return await fallbackWikipedia(query, res);
+    }
+
+    const vqd = match[1];
+    const searchUrl = `https://duckduckgo.com/i.js?l=it-it&o=json&q=${encodeURIComponent(query)}&vqd=${vqd}&f=,,,`;
+
+    const imgRes = await fetch(searchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Referer': 'https://duckduckgo.com/',
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!imgRes.ok) {
+      return await fallbackWikipedia(query, res);
+    }
+
+    const data = await imgRes.json();
+    const rawResults = data.results || [];
+
+    // Filter valid image URLs (must be https, valid extensions or image CDNs)
+    const validPhotos: RealPhotoResult[] = [];
+    const seenUrls = new Set<string>();
+
+    for (const item of rawResults) {
+      if (!item.image || typeof item.image !== 'string') continue;
+      if (!item.image.startsWith('https://')) continue;
+      if (seenUrls.has(item.image)) continue;
+
+      // Filter out low quality thumbnails or trackers
+      if (item.image.includes('favicon') || item.image.includes('avatar') || item.image.includes('logo_small')) continue;
+
+      seenUrls.add(item.image);
+      validPhotos.push({
+        url: item.image,
+        title: item.title || query,
+        source: item.url || 'Web',
+        width: item.width || 1200,
+        height: item.height || 800,
+      });
+
+      if (validPhotos.length >= 5) break;
+    }
+
+    if (validPhotos.length > 0) {
+      memoryCache.set(cacheKey, validPhotos);
+      return res.status(200).json({
+        photos: validPhotos,
+        source: 'real_web',
+        place: query,
       });
     }
 
-    const searchData = await searchResponse.json();
-    const place = searchData.places?.[0];
-
-    if (!place || !place.photos || place.photos.length === 0) {
-      return res.status(200).json({ 
-        photos: [], 
-        place: place?.displayName?.text || null,
-        address: place?.formattedAddress || null,
-        message: 'No photos found for this place' 
-      });
-    }
-
-    // Step 2: Build photo URLs from photo references
-    // The Places API (New) photo endpoint: GET https://places.googleapis.com/v1/{name}/media
-    // name = places/{placeId}/photos/{photoReference}
-    const maxPhotos = Math.min(place.photos.length, 5);
-    const photoUrls: { url: string; width: number; height: number; authors: string[] }[] = [];
-
-    for (let i = 0; i < maxPhotos; i++) {
-      const photoRef = place.photos[i];
-      const photoName = photoRef.name; // e.g. "places/ChIJ.../photos/AUy..."
-
-      // The photo media URL - this returns a redirect to the actual image
-      const mediaUrl = `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=800&maxWidthPx=1200&key=${apiKey}`;
-
-      // Fetch the photo to get the final redirected URL
-      try {
-        const photoRes = await fetch(mediaUrl, { redirect: 'follow' });
-        if (photoRes.ok) {
-          // The final URL after redirect is the actual image URL
-          const finalUrl = photoRes.url;
-          photoUrls.push({
-            url: finalUrl,
-            width: photoRef.widthPx || 1200,
-            height: photoRef.heightPx || 800,
-            authors: (photoRef.authorAttributions || []).map((a: any) => a.displayName || 'Google'),
-          });
-        }
-      } catch (photoErr) {
-        console.warn(`Failed to fetch photo ${i}:`, photoErr);
-      }
-    }
-
-    return res.status(200).json({
-      photos: photoUrls,
-      place: place.displayName?.text || query,
-      address: place.formattedAddress || null,
-      placeId: place.id || null,
-    });
+    // Fallback if no images returned
+    return await fallbackWikipedia(query, res);
 
   } catch (error: any) {
-    console.error('PlacePhotos proxy error:', error);
-    return res.status(500).json({ 
-      error: error.message || 'Internal Server Error', 
-      photos: [] 
-    });
+    console.error('Real web photo search error:', error);
+    return await fallbackWikipedia(query, res);
   }
+}
+
+async function fallbackWikipedia(query: string, res: any) {
+  try {
+    const openSearchUrl = `https://it.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(query)}&limit=2&format=json&origin=*`;
+    const wikiRes = await fetch(openSearchUrl);
+    if (wikiRes.ok) {
+      const data = await wikiRes.json();
+      const titles = data[1] || [];
+      for (const title of titles) {
+        const pageImgUrl = `https://it.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&piprop=thumbnail&pithumbsize=1200&format=json&origin=*`;
+        const pRes = await fetch(pageImgUrl);
+        if (pRes.ok) {
+          const pData = await pRes.json();
+          const pages = pData.query?.pages;
+          if (pages) {
+            const p = Object.values(pages)[0] as any;
+            const thumb = p?.thumbnail?.source;
+            if (thumb) {
+              const photo: RealPhotoResult = {
+                url: thumb,
+                title: title,
+                source: `Wikipedia (${title})`,
+              };
+              return res.status(200).json({
+                photos: [photo],
+                source: 'wikipedia',
+                place: query,
+              });
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {}
+
+  return res.status(200).json({
+    photos: [],
+    source: 'none',
+    place: query,
+  });
 }

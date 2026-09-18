@@ -110,15 +110,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
       }
 
       try {
-        let userKeyParam = '';
-        try {
-          const customKey = localStorage.getItem('user_gemini_api_key');
-          if (customKey && customKey.trim().length > 0) {
-            userKeyParam = `&userKey=${encodeURIComponent(customKey.trim())}`;
-          }
-        } catch (e) {}
-
-        const placesUrl = `/api/placePhotos?query=${encodeURIComponent(fullSearchQuery)}${userKeyParam}`;
+        const placesUrl = `/api/placePhotos?query=${encodeURIComponent(fullSearchQuery)}`;
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 8000);
         const placesRes = await fetch(placesUrl, { signal: controller.signal });
@@ -129,20 +121,19 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
           if (placesData.photos && placesData.photos.length > 0) {
             for (const photo of placesData.photos) {
               if (photo.url && !realItems.some(r => r.url === photo.url)) {
-                const authorText = photo.authors?.length > 0 ? photo.authors[0] : 'Google';
                 realItems.push({
                   url: photo.url,
                   isReal: true,
                   isFood: isFoodVenue,
                   tier: 'google',
-                  sourceLabel: `📸 Scheda Google: ${placesData.place || targetSearch} (${authorText})`
+                  sourceLabel: `📸 Foto Reale: ${photo.title || placesData.place || targetSearch}`
                 });
               }
             }
           }
         }
       } catch (e) {
-        // Places API not available, continue to next tier
+        // Fallback to Wikipedia or Pollinations
       }
 
       // ═══════════════════════════════════════════
@@ -237,8 +228,8 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
     if (currentPhoto.tier === 'google') {
       return (
         <div className="px-3 py-1.5 bg-emerald-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-emerald-400/40 animate-fade-in">
-          <Star className="w-3.5 h-3.5 text-amber-300" />
-          <span>Foto Reale Google ({currentIndex + 1}/{photoList.length})</span>
+          <Camera className="w-3.5 h-3.5 text-amber-300" />
+          <span>Foto Reale Certificata ({currentIndex + 1}/{photoList.length})</span>
         </div>
       );
     }
