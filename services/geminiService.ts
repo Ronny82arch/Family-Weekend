@@ -173,6 +173,8 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     VISUAL_SCENE: Pasta fresca tradizionale servita in un'accogliente trattoria tipica romana
     GEO_LOCATION: Trattoria Da Enzo al 29, Roma
     IMAGE_QUERY: Trattoria Da Enzo Roma pasta carbonara cacio e pepe
+    PHOTO_URL: https://lh3.googleusercontent.com/p/AF1QipN38j7yBq2uD5VzX2G9V7G8
+    GOOGLE_BUSINESS: Trattoria Da Enzo al 29, Via dei Vascellari 29, Roma
     Sosta gastronomica nel cuore autentico del quartiere storico per ricaricare le energie con la vera cucina tipica. L'atmosfera � calda, familiare e festosa, con personale accogliente abituato a gestire famiglie con bambini piccoli e neonati.
 
     Piatti imperdibili per gli adulti: i leggendari tonnarelli cacio e pepe cremosi, i carciofi alla giudia croccanti e la carbonara perfetta. Per i pi� piccoli: gnocchetti al pomodoro fresco fatto in casa, polpettine morbide e una spettacolare mousse di mascarpone artigianale con fragoline.
@@ -370,7 +372,8 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
     - Visual scene sotto i titoli: "VISUAL_SCENE: [Descrizione breve per immagine]"
     - GEO_LOCATION sotto la visual scene: "GEO_LOCATION: [Nome Reale Luogo, Citt�]"
     - IMAGE_QUERY sotto la GEO_LOCATION: "IMAGE_QUERY: [Nome Reale Luogo o Ristorante, Citt�]"
-    - PHOTO_URL sotto IMAGE_QUERY (opzionale se trovato da Google Search): "PHOTO_URL: [URL Immagine Reale]"
+    - PHOTO_URL sotto IMAGE_QUERY (MANDATORIO PER I RISTORANTI: Estrai l'URL della foto reale dalla Scheda Azienda Google Maps o dal web): "PHOTO_URL: [URL Immagine Reale Scheda Google]"
+    - GOOGLE_BUSINESS: [Nome Esatto Ristorante, Citt�]
     - EXPLO_QUEST sotto la GEO_LOCATION: "EXPLO_QUEST: [Indovinello/Caccia al tesoro]"
 
     ## Intro

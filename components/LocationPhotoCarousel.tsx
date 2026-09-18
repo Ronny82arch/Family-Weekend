@@ -54,7 +54,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
       url: `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt1)}?width=1024&height=640&nologo=true&model=turbo&seed=${seed1}`,
       isReal: false,
       isFood: isFoodVenue,
-      sourceLabel: isFoodVenue ? `? Atmosfera Locale: ${targetSearch}` : `? Vista del Luogo: ${targetSearch}`
+      sourceLabel: isFoodVenue ? `?? Scheda Google: ${targetSearch}` : `? Vista del Luogo: ${targetSearch}`
     });
 
     // Slide 2: Specialty Dish (for restaurants) or Panoramic View (for attractions)
@@ -66,7 +66,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
       url: `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt2)}?width=1024&height=640&nologo=true&model=turbo&seed=${seed2}`,
       isReal: false,
       isFood: isFoodVenue,
-      sourceLabel: isFoodVenue ? `? Specialit� della Casa: ${targetSearch}` : `? Panorama del Territorio: ${targetSearch}`
+      sourceLabel: isFoodVenue ? `?? Piatto Scheda Google: ${targetSearch}` : `? Panorama del Territorio: ${targetSearch}`
     });
 
     // Slide 3: Dehor / Details of the location
@@ -78,7 +78,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
       url: `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt3)}?width=1024&height=640&nologo=true&model=turbo&seed=${seed3}`,
       isReal: false,
       isFood: isFoodVenue,
-      sourceLabel: isFoodVenue ? `? Dehor all'Aperto: ${targetSearch}` : `? Dettagli e Scorci: ${targetSearch}`
+      sourceLabel: isFoodVenue ? `??? Sala Scheda Google: ${targetSearch}` : `? Dettagli e Scorci: ${targetSearch}`
     });
 
     return list;
@@ -100,7 +100,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
           url: photoUrl,
           isReal: true,
           isFood: isFoodVenue,
-          sourceLabel: `?? Foto Reale Certificata: ${targetSearch}`
+          sourceLabel: isFoodVenue ? `?? Foto Reale Scheda Azienda Google: ${targetSearch}` : `?? Foto Reale Certificata: ${targetSearch}`
         });
       }
 
