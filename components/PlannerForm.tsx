@@ -668,7 +668,16 @@ const AvatarCreatorModal: React.FC<{
 
 export const PlannerForm: React.FC<PlannerFormProps> = ({ preferences, setPreferences, onSubmit, isLoading, onLocate, isLocating, locationError, t }) => {
   const [avatarModalState, setAvatarModalState] = useState<{isOpen: boolean, tab: 'adults' | 'children', index: number} | null>(null);
-  const [familyCollapsed, setFamilyCollapsed] = useState(false);
+  const [familyCollapsed, setFamilyCollapsed] = useState(() => {
+    try {
+      if (localStorage.getItem('familySetupDone') === 'true') return true;
+      const hasAdults = (preferences.adultsData || []).some(a => a && (a.role || a.avatarUrl));
+      const hasChildren = (preferences.children || []).some(c => c && (c.name || c.avatarUrl));
+      return Boolean(hasAdults || hasChildren);
+    } catch(e) {
+      return false;
+    }
+  });
 
   // Auto-collapse if family already has names from a previous session
   useEffect(() => {
