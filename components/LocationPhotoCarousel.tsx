@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Maximize2, X, Camera, Check, Utensils, Sparkles, MapPin } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Maximize2, X, Camera, Check, Utensils, Sparkles, MapPin, Star } from 'lucide-react';
 
 export interface PhotoItem {
   url: string;
   isReal: boolean;
   isFood?: boolean;
   sourceLabel: string;
+  tier: 'google' | 'wikipedia' | 'pollinations';
 }
 
 interface LocationPhotoCarouselProps {
@@ -17,9 +18,12 @@ interface LocationPhotoCarouselProps {
   baseCity?: string;
 }
 
+// In-memory cache to avoid re-fetching the same place photos
+const placesPhotoCache = new Map<string, PhotoItem[]>();
+
 export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ title, imageQuery, photoUrl, className = 'w-full h-64 sm:h-72', familyAvatars = [], baseCity = 'Italia' }) => {
   const isFoodVenue = useMemo(() => {
-    return /ristorante|trattoria|osteria|pizzeria|cena|pranzo|colazione|bar|caff�/i.test(title);
+    return /ristorante|trattoria|osteria|pizzeria|cena|pranzo|colazione|bar|caffè|agriturismo|locanda|taverna/i.test(title);
   }, [title]);
 
   const targetSearch = useMemo(() => {
@@ -33,161 +37,278 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
       .trim();
   }, [title, imageQuery]);
 
-  // Generate dynamic, ultra-high-definition, venue-specific photographs for this exact place & city
-  const dynamicVenuePhotos = useMemo(() => {
-    const list: PhotoItem[] = [];
+  // Build the full search query including city
+  const fullSearchQuery = useMemo(() => {
     const cityClean = baseCity && baseCity !== 'Italia' ? baseCity : '';
-    const fullLocation = cityClean && !targetSearch.toLowerCase().includes(cityClean.toLowerCase()) 
-      ? `${targetSearch} ${cityClean}` 
-      : targetSearch;
+    if (cityClean && !targetSearch.toLowerCase().includes(cityClean.toLowerCase())) {
+      return `${targetSearch} ${cityClean}`;
+    }
+    return targetSearch;
+  }, [targetSearch, baseCity]);
 
-    const seed1 = Math.abs(fullLocation.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 9999);
+  // Generate Pollinations fallback photos (Tier 3)
+  const pollinationsPhotos = useMemo((): PhotoItem[] => {
+    const seed1 = Math.abs(fullSearchQuery.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 9999);
     const seed2 = (seed1 + 137) % 9999;
     const seed3 = (seed1 + 541) % 9999;
 
-    // Slide 1: High-Resolution Travel Photography of the Venue / Atmosphere
     const prompt1 = isFoodVenue
-      ? `Authentic DSLR 8k photo of ${fullLocation}, welcoming Italian restaurant dining room and facade, warm daylight, architectural travel photography`
-      : `Authentic DSLR 8k travel photo of ${fullLocation}, scenic landmark architecture, beautiful natural daylight, award winning travel photography`;
+      ? `Authentic DSLR 8k photo of ${fullSearchQuery}, welcoming Italian restaurant dining room and facade, warm daylight, architectural travel photography`
+      : `Authentic DSLR 8k travel photo of ${fullSearchQuery}, scenic landmark architecture, beautiful natural daylight, award winning travel photography`;
 
-    list.push({
-      url: `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt1)}?width=1024&height=640&nologo=true&model=turbo&seed=${seed1}`,
-      isReal: false,
-      isFood: isFoodVenue,
-      sourceLabel: isFoodVenue ? `?? Scheda Google: ${targetSearch}` : `? Vista del Luogo: ${targetSearch}`
-    });
-
-    // Slide 2: Specialty Dish (for restaurants) or Panoramic View (for attractions)
     const prompt2 = isFoodVenue
-      ? `Authentic traditional Italian dish specialty served at ${fullLocation}, delicious gourmet food photography, freshly prepared, 8k`
-      : `Panoramic travel scenery of ${fullLocation}, breathtaking landscape view, natural light, 8k`;
+      ? `Authentic traditional Italian dish specialty served at ${fullSearchQuery}, delicious gourmet food photography, freshly prepared, 8k`
+      : `Panoramic travel scenery of ${fullSearchQuery}, breathtaking landscape view, natural light, 8k`;
 
-    list.push({
-      url: `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt2)}?width=1024&height=640&nologo=true&model=turbo&seed=${seed2}`,
-      isReal: false,
-      isFood: isFoodVenue,
-      sourceLabel: isFoodVenue ? `?? Piatto Scheda Google: ${targetSearch}` : `? Panorama del Territorio: ${targetSearch}`
-    });
-
-    // Slide 3: Dehor / Details of the location
     const prompt3 = isFoodVenue
-      ? `Charming outdoor patio dehor of ${fullLocation}, Italian historic village atmosphere, sunny day, 8k`
-      : `Close up architectural and nature details of ${fullLocation}, authentic travel experience, 8k`;
+      ? `Charming outdoor patio dehor of ${fullSearchQuery}, Italian historic village atmosphere, sunny day, 8k`
+      : `Close up architectural and nature details of ${fullSearchQuery}, authentic travel experience, 8k`;
 
-    list.push({
-      url: `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt3)}?width=1024&height=640&nologo=true&model=turbo&seed=${seed3}`,
-      isReal: false,
-      isFood: isFoodVenue,
-      sourceLabel: isFoodVenue ? `??? Sala Scheda Google: ${targetSearch}` : `? Dettagli e Scorci: ${targetSearch}`
-    });
+    return [
+      {
+        url: `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt1)}?width=1024&height=640&nologo=true&model=turbo&seed=${seed1}`,
+        isReal: false, isFood: isFoodVenue, tier: 'pollinations',
+        sourceLabel: isFoodVenue ? `🍽️ Ispirazione: ${targetSearch}` : `🏛️ Vista: ${targetSearch}`
+      },
+      {
+        url: `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt2)}?width=1024&height=640&nologo=true&model=turbo&seed=${seed2}`,
+        isReal: false, isFood: isFoodVenue, tier: 'pollinations',
+        sourceLabel: isFoodVenue ? `🍝 Piatto Ispirazione: ${targetSearch}` : `🌄 Panorama: ${targetSearch}`
+      },
+      {
+        url: `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt3)}?width=1024&height=640&nologo=true&model=turbo&seed=${seed3}`,
+        isReal: false, isFood: isFoodVenue, tier: 'pollinations',
+        sourceLabel: isFoodVenue ? `🪑 Sala Ispirazione: ${targetSearch}` : `✨ Dettagli: ${targetSearch}`
+      },
+    ];
+  }, [fullSearchQuery, targetSearch, isFoodVenue]);
 
-    return list;
-  }, [targetSearch, baseCity, isFoodVenue]);
-
-  const [photoList, setPhotoList] = useState<PhotoItem[]>(dynamicVenuePhotos);
+  const [photoList, setPhotoList] = useState<PhotoItem[]>(pollinationsPhotos);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [loadingReal, setLoadingReal] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchExactVerifiedPhotos = async () => {
+    const fetchRealPhotos = async () => {
+      setLoadingReal(true);
       const realItems: PhotoItem[] = [];
 
-      // If AI Google Grounding photoUrl exists, include it as strictly verified real photo
-      if (photoUrl && photoUrl.startsWith('http')) {
-        realItems.push({
-          url: photoUrl,
-          isReal: true,
-          isFood: isFoodVenue,
-          sourceLabel: isFoodVenue ? `?? Foto Reale Scheda Azienda Google: ${targetSearch}` : `?? Foto Reale Certificata: ${targetSearch}`
-        });
+      // ═══════════════════════════════════════════
+      // TIER 1: Google Places API (via serverless proxy)
+      // ═══════════════════════════════════════════
+      const cacheKey = `places_${fullSearchQuery}`;
+      if (placesPhotoCache.has(cacheKey)) {
+        const cached = placesPhotoCache.get(cacheKey)!;
+        if (cached.length > 0 && isMounted) {
+          setPhotoList(cached);
+          setCurrentIndex(0);
+          setLoadingReal(false);
+          return;
+        }
       }
 
-      // Step 1: OpenSearch Title Lookup on Italian Wikipedia (ONLY MATCHES ARTICLE TITLES, NEVER FULL-TEXT NOISE!)
       try {
-        const searchTerms = [targetSearch];
-        if (targetSearch.includes(' a ')) searchTerms.push(targetSearch.split(' a ')[0].trim());
-        if (targetSearch.includes(',')) searchTerms.push(targetSearch.split(',')[0].trim());
+        let userKeyParam = '';
+        try {
+          const customKey = localStorage.getItem('user_gemini_api_key');
+          if (customKey && customKey.trim().length > 0) {
+            userKeyParam = `&userKey=${encodeURIComponent(customKey.trim())}`;
+          }
+        } catch (e) {}
 
-        for (const term of searchTerms) {
-          const openSearchUrl = `https://it.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(term)}&limit=3&format=json&origin=*`;
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 3500);
-          const res = await fetch(openSearchUrl, { signal: controller.signal });
-          clearTimeout(timer);
+        const placesUrl = `/api/placePhotos?query=${encodeURIComponent(fullSearchQuery)}${userKeyParam}`;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000);
+        const placesRes = await fetch(placesUrl, { signal: controller.signal });
+        clearTimeout(timer);
 
-          if (res.ok) {
-            const data = await res.json();
-            const matchedTitles: string[] = data[1] || [];
+        if (placesRes.ok) {
+          const placesData = await placesRes.json();
+          if (placesData.photos && placesData.photos.length > 0) {
+            for (const photo of placesData.photos) {
+              if (photo.url && !realItems.some(r => r.url === photo.url)) {
+                const authorText = photo.authors?.length > 0 ? photo.authors[0] : 'Google';
+                realItems.push({
+                  url: photo.url,
+                  isReal: true,
+                  isFood: isFoodVenue,
+                  tier: 'google',
+                  sourceLabel: `📸 Scheda Google: ${placesData.place || targetSearch} (${authorText})`
+                });
+              }
+            }
+          }
+        }
+      } catch (e) {
+        // Places API not available, continue to next tier
+      }
 
-            for (const articleTitle of matchedTitles) {
-              if (articleTitle.toLowerCase().includes('(film)') || articleTitle.toLowerCase().includes('(disambigua)')) continue;
+      // ═══════════════════════════════════════════
+      // TIER 2: Wikipedia OpenSearch (for landmarks)
+      // ═══════════════════════════════════════════
+      if (realItems.length === 0) {
+        try {
+          const searchTerms = [targetSearch];
+          if (targetSearch.includes(' a ')) searchTerms.push(targetSearch.split(' a ')[0].trim());
+          if (targetSearch.includes(',')) searchTerms.push(targetSearch.split(',')[0].trim());
 
-              const pageImgUrl = `https://it.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(articleTitle)}&prop=pageimages&piprop=thumbnail&pithumbsize=1200&format=json&origin=*`;
-              const imgRes = await fetch(pageImgUrl);
-              if (imgRes.ok) {
-                const imgData = await imgRes.json();
-                const pages = imgData.query?.pages;
-                if (pages) {
-                  const page = Object.values(pages)[0] as any;
-                  const thumb = page?.thumbnail?.source;
-                  if (thumb && !realItems.some(i => i.url === thumb)) {
-                    realItems.push({
-                      url: thumb,
-                      isReal: true,
-                      isFood: isFoodVenue,
-                      sourceLabel: `?? Foto Reale Certificata: ${articleTitle}`
-                    });
+          for (const term of searchTerms) {
+            const openSearchUrl = `https://it.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(term)}&limit=3&format=json&origin=*`;
+            const wikiController = new AbortController();
+            const wikiTimer = setTimeout(() => wikiController.abort(), 3500);
+            const wikiRes = await fetch(openSearchUrl, { signal: wikiController.signal });
+            clearTimeout(wikiTimer);
+
+            if (wikiRes.ok) {
+              const data = await wikiRes.json();
+              const matchedTitles: string[] = data[1] || [];
+
+              for (const articleTitle of matchedTitles) {
+                if (articleTitle.toLowerCase().includes('(film)') || articleTitle.toLowerCase().includes('(disambigua)')) continue;
+
+                const pageImgUrl = `https://it.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(articleTitle)}&prop=pageimages&piprop=thumbnail&pithumbsize=1200&format=json&origin=*`;
+                const imgRes = await fetch(pageImgUrl);
+                if (imgRes.ok) {
+                  const imgData = await imgRes.json();
+                  const pages = imgData.query?.pages;
+                  if (pages) {
+                    const page = Object.values(pages)[0] as any;
+                    const thumb = page?.thumbnail?.source;
+                    if (thumb && !realItems.some(i => i.url === thumb)) {
+                      realItems.push({
+                        url: thumb,
+                        isReal: true,
+                        isFood: false,
+                        tier: 'wikipedia',
+                        sourceLabel: `📷 Wikipedia: ${articleTitle}`
+                      });
+                    }
                   }
                 }
               }
             }
+            if (realItems.length > 0) break;
           }
-          if (realItems.length > 0) break;
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
 
-      // Present real photos first, followed by the dedicated venue-specific generated photos
+      // ═══════════════════════════════════════════
+      // Compose final carousel
+      // ═══════════════════════════════════════════
       if (isMounted) {
         if (realItems.length > 0) {
-          const fullCarousel = [...realItems, ...dynamicVenuePhotos.filter(s => !realItems.some(r => r.url === s.url))].slice(0, 5);
-          setPhotoList(fullCarousel);
+          // Cache for future reuse
+          placesPhotoCache.set(cacheKey, realItems.length >= 3 ? realItems : [...realItems, ...pollinationsPhotos.slice(0, 3 - realItems.length)]);
+          // Show real photos first, then fill with fallback if needed
+          const finalList = realItems.length >= 3
+            ? realItems.slice(0, 5)
+            : [...realItems, ...pollinationsPhotos.slice(0, Math.max(0, 3 - realItems.length))];
+          setPhotoList(finalList);
         } else {
-          setPhotoList(dynamicVenuePhotos);
+          setPhotoList(pollinationsPhotos);
         }
         setCurrentIndex(0);
+        setLoadingReal(false);
       }
     };
 
-    fetchExactVerifiedPhotos();
+    fetchRealPhotos();
     return () => { isMounted = false; };
-  }, [targetSearch, baseCity, isFoodVenue, dynamicVenuePhotos, photoUrl]);
+  }, [fullSearchQuery, targetSearch, isFoodVenue, pollinationsPhotos]);
 
   const currentPhoto = photoList[currentIndex] || photoList[0];
 
-  const handlePrev = (e: React.MouseEvent) => {
+  const handlePrev = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentIndex(prev => (prev === 0 ? photoList.length - 1 : prev - 1));
-  };
+  }, [photoList.length]);
 
-  const handleNext = (e: React.MouseEvent) => {
+  const handleNext = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentIndex(prev => (prev === photoList.length - 1 ? 0 : prev + 1));
+  }, [photoList.length]);
+
+  // Badge styling based on tier
+  const getBadge = () => {
+    if (!currentPhoto) return null;
+
+    if (currentPhoto.tier === 'google') {
+      return (
+        <div className="px-3 py-1.5 bg-emerald-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-emerald-400/40 animate-fade-in">
+          <Star className="w-3.5 h-3.5 text-amber-300" />
+          <span>Foto Reale Google ({currentIndex + 1}/{photoList.length})</span>
+        </div>
+      );
+    }
+    if (currentPhoto.tier === 'wikipedia') {
+      return (
+        <div className="px-3 py-1.5 bg-blue-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-blue-400/40 animate-fade-in">
+          <Camera className="w-3.5 h-3.5 text-blue-200" />
+          <span>Foto Reale Wikipedia ({currentIndex + 1}/{photoList.length})</span>
+        </div>
+      );
+    }
+    if (currentPhoto.isFood) {
+      return (
+        <div className="px-3 py-1.5 bg-amber-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-amber-400/40 animate-fade-in">
+          <Utensils className="w-3.5 h-3.5 text-amber-200" />
+          <span>Foto Ispirazione ({currentIndex + 1}/{photoList.length})</span>
+        </div>
+      );
+    }
+    return (
+      <div className="px-3 py-1.5 bg-indigo-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-indigo-400/40 animate-fade-in">
+        <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
+        <span>Scena Ispirazione ({currentIndex + 1}/{photoList.length})</span>
+      </div>
+    );
+  };
+
+  // Tier badge color for thumbnails
+  const getTierColor = (photo: PhotoItem) => {
+    if (photo.tier === 'google') return 'bg-emerald-500';
+    if (photo.tier === 'wikipedia') return 'bg-blue-500';
+    return 'bg-amber-500';
+  };
+
+  const getTierBorderColor = (photo: PhotoItem, isActive: boolean) => {
+    if (!isActive) return 'border-transparent opacity-50 hover:opacity-100';
+    if (photo.tier === 'google') return 'border-emerald-500 scale-105 opacity-100 ring-2 ring-emerald-300';
+    if (photo.tier === 'wikipedia') return 'border-blue-500 scale-105 opacity-100 ring-2 ring-blue-300';
+    return 'border-amber-500 scale-105 opacity-100 ring-2 ring-amber-300';
+  };
+
+  const getTierIcon = (photo: PhotoItem) => {
+    if (photo.tier === 'google') return '⭐';
+    if (photo.tier === 'wikipedia') return '📷';
+    return '✨';
   };
 
   return (
     <>
       <div className={`relative overflow-hidden rounded-3xl group shadow-xl bg-slate-900 flex flex-col ${className}`}>
         <div className="relative flex-1 overflow-hidden cursor-pointer" onClick={() => setLightboxOpen(true)}>
+          {/* Loading shimmer overlay when fetching real photos */}
+          {loadingReal && (
+            <div className="absolute inset-0 z-20 pointer-events-none">
+              <div className="absolute top-3 left-3 px-3 py-1.5 bg-slate-700/90 backdrop-blur-md text-white rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
+                <MapPin className="w-3 h-3" />
+                <span>Cerco foto reali...</span>
+              </div>
+            </div>
+          )}
+
           <img
-            src={currentPhoto.url}
+            src={currentPhoto?.url}
             alt={title}
             className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105"
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-black/35 pointer-events-none" />
 
-          {/* Navigation Arrows for Carousel */}
+          {/* Navigation Arrows */}
           {photoList.length > 1 && (
             <>
               <button
@@ -216,24 +337,9 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             </button>
           </div>
 
-          {/* 100% HONEST, TRANSPARENT BADGES */}
+          {/* Tier Badge */}
           <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-            {currentPhoto.isReal ? (
-              <div className="px-3 py-1.5 bg-emerald-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-emerald-400/40 animate-fade-in">
-                <Camera className="w-3.5 h-3.5 text-amber-300" />
-                <span>Foto Reale Certificata ({currentIndex + 1}/{photoList.length})</span>
-              </div>
-            ) : currentPhoto.isFood ? (
-              <div className="px-3 py-1.5 bg-amber-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-amber-400/40 animate-fade-in">
-                <Utensils className="w-3.5 h-3.5 text-amber-200" />
-                <span>Foto su Misura ({currentIndex + 1}/{photoList.length})</span>
-              </div>
-            ) : (
-              <div className="px-3 py-1.5 bg-indigo-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-indigo-400/40 animate-fade-in">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
-                <span>Scena su Misura ({currentIndex + 1}/{photoList.length})</span>
-              </div>
-            )}
+            {!loadingReal && getBadge()}
           </div>
 
           {/* Family Avatar Souvenir Overlay */}
@@ -249,20 +355,18 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
           )}
         </div>
 
-        {/* Thumbnail Bar (ALWAYS ACTIVE for rich multi-photo navigation!) */}
+        {/* Thumbnail Bar */}
         <div className="bg-slate-950 p-2 flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar border-t border-white/10 z-10">
           <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
             {photoList.map((p, idx) => (
               <button
                 key={idx}
                 onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
-                className={`relative w-12 h-10 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-300 ${
-                  idx === currentIndex ? (p.isReal ? 'border-emerald-500 scale-105 opacity-100 ring-2 ring-emerald-300' : 'border-amber-500 scale-105 opacity-100 ring-2 ring-amber-300') : 'border-transparent opacity-50 hover:opacity-100'
-                }`}
+                className={`relative w-12 h-10 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-300 ${getTierBorderColor(p, idx === currentIndex)}`}
               >
-                <img src={p.url} className="w-full h-full object-cover" />
-                <div className={`absolute top-0.5 right-0.5 text-white text-[8px] px-1 rounded-full font-black ${p.isReal ? 'bg-emerald-500' : 'bg-amber-500'}`}>
-                  {p.isReal ? '?' : '?'}
+                <img src={p.url} className="w-full h-full object-cover" loading="lazy" />
+                <div className={`absolute top-0.5 right-0.5 text-white text-[8px] px-1 rounded-full font-black ${getTierColor(p)}`}>
+                  {getTierIcon(p)}
                 </div>
               </button>
             ))}
@@ -281,8 +385,14 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
         >
           <div className="w-full flex justify-between items-center max-w-5xl">
             <div className="flex items-center gap-3">
-              <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg ${currentPhoto.isReal ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'}`}>
-                {currentPhoto.isReal ? <Camera className="w-4 h-4 text-amber-300" /> : <Sparkles className="w-4 h-4 text-amber-200" />} {currentPhoto.sourceLabel}
+              <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg ${
+                currentPhoto?.tier === 'google' ? 'bg-emerald-600 text-white' :
+                currentPhoto?.tier === 'wikipedia' ? 'bg-blue-600 text-white' :
+                'bg-amber-600 text-white'
+              }`}>
+                {currentPhoto?.tier === 'google' ? <Star className="w-4 h-4 text-amber-300" /> :
+                 currentPhoto?.tier === 'wikipedia' ? <Camera className="w-4 h-4 text-blue-200" /> :
+                 <Sparkles className="w-4 h-4 text-amber-200" />} {currentPhoto?.sourceLabel}
               </span>
             </div>
             <button
@@ -295,7 +405,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
 
           <div className="relative max-w-4xl w-full flex items-center justify-center my-auto">
             <img
-              src={currentPhoto.url}
+              src={currentPhoto?.url}
               alt={title}
               className="max-w-full max-h-[75vh] object-contain rounded-3xl shadow-2xl border border-white/10"
             />

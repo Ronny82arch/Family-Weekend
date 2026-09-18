@@ -367,19 +367,17 @@ export const generateWeekendPlan = async (prefs: FamilyPreferences, previousPlan
 
     7. REGOLE DI FORMATTAZIONE:
     - Usa Markdown.
-    - Titoli attivit� con "### " e fascia oraria.
-    - Nomi dei luoghi in "**Grassetto**" (Es: **Parco Sigurt�**)
+    - Titoli attivit con "### " e fascia oraria.
+    - Nomi dei luoghi in "**Grassetto**" (Es: **Parco Sigurt**)
     - Visual scene sotto i titoli: "VISUAL_SCENE: [Descrizione breve per immagine]"
-    - GEO_LOCATION sotto la visual scene: "GEO_LOCATION: [Nome Reale Luogo, Citt�]"
-    - IMAGE_QUERY sotto la GEO_LOCATION: "IMAGE_QUERY: [Nome Reale Luogo o Ristorante, Citt�]"
-    - PHOTO_URL sotto IMAGE_QUERY (MANDATORIO PER I RISTORANTI: Estrai l'URL della foto reale dalla Scheda Azienda Google Maps o dal web): "PHOTO_URL: [URL Immagine Reale Scheda Google]"
-    - GOOGLE_BUSINESS: [Nome Esatto Ristorante, Citt�]
+    - GEO_LOCATION sotto la visual scene: "GEO_LOCATION: [Nome Reale Luogo, Citt]"
+    - IMAGE_QUERY sotto la GEO_LOCATION: "IMAGE_QUERY: [Nome Reale Esatto del Luogo o Ristorante, Città]" (FONDAMENTALE: scrivi il NOME ESATTO REALE del luogo come appare su Google Maps, es. "Trattoria Da Enzo al 29, Roma" o "Parco Giardino Sigurtà, Valeggio sul Mincio")
     - EXPLO_QUEST sotto la GEO_LOCATION: "EXPLO_QUEST: [Indovinello/Caccia al tesoro]"
 
     ## Intro
     [Inspirational intro]
     GENERATE METEO_VISUAL for ${terms.sat} and ${terms.sun}. Format: DAY|MORNING_ICON|TEMP|AFTERNOON_ICON|TEMP|NIGHT_ICON|TEMP
-    Example: ${terms.sat.toUpperCase()}|??|20�|?|22�|??|15�
+    Example: ${terms.sat.toUpperCase()}|??|20|?|22|??|15
 
     ${getDayPrompt(terms.sat, prefs.saturdayMode)}
 
