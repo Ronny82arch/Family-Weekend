@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Maximize2, X, Camera, Check, Utensils, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, X, Camera, Check, Utensils, Sparkles, MapPin } from 'lucide-react';
 
 export interface PhotoItem {
   url: string;
@@ -8,46 +8,46 @@ export interface PhotoItem {
   sourceLabel: string;
 }
 
-// 4K Curated Authentic Regional Italian & International Gastronomy Library
+// 4K Curated Authentic Regional Gastronomy Library (Labeled as Inspiration)
 const REGIONAL_FOOD_COLLECTION: Record<string, PhotoItem[]> = {
   rome: [
-    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Cucina Romana: Tonnarelli Cacio e Pepe / Carbonara" },
-    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Trattoria Tradizionale: Sala Accogliente nel Borgo" },
-    { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Antipasto Romano: Carciofi alla Giudia e Tagliere" },
-    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "??? Dehor all'Aperto per Famiglie" }
+    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Primi Tipici Romani" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Atmosfera Trattoria Tradizionale" },
+    { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Antipasto Tipico della Casa" },
+    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Dehor Accogliente per Famiglie" }
   ],
   pizza: [
-    { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pizzeria: Pizza Artigianale al Forno a Legna" },
-    { url: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pizza Tradizionale con Ingredienti DOP a km 0" },
-    { url: "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Sala Pizzeria e Forno a Vista" }
+    { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Pizza Artigianale al Forno a Legna" },
+    { url: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Pizza Tradizionale con Ingredienti DOP" },
+    { url: "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Sala Pizzeria per Famiglie" }
   ],
   veneto: [
-    { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Osteria Veneta: Risotto e Primi Piatti Tradizionali" },
-    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Osteria Tipica: Atmosfera Calda e Conviviale" },
-    { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Cicchetti e Piatti della Casa" }
+    { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Risotto e Primi della Tradizione Veneta" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Osteria Tipica e Conviviale" },
+    { url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Cicchetti e Specialit� Locali" }
   ],
   tuscany: [
-    { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Trattoria Toscana: Bistecca e Pici Fatti a Mano" },
-    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Locanda Storica: Sala con Travi a Vista" }
+    { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Specialit� e Paste Tipiche Toscane" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Locanda Storica nel Borgo" }
   ],
   general_food: [
-    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Primi Piatti della Tradizione" },
-    { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Specialit� Cotte al Forno" },
-    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Ristorante Tipico: Sala Accogliente per Famiglie" },
-    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "??? Dehor all'Aperto per Famiglie" }
+    { url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Pasta Fresca Artigianale" },
+    { url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Specialit� Cotte al Forno" },
+    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Ristorante Tradizionale per Famiglie" },
+    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Dehor Panoramico" }
   ]
 };
 
 const REAL_BREAKFAST_GALLERY: PhotoItem[] = [
-  { url: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "? Colazione Artigianale: Cappuccino e Brioche Calde" },
-  { url: "https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Pasticceria Fresca del Mattino" },
-  { url: "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=1000&q=85", isReal: true, isFood: true, sourceLabel: "?? Buffet Dolci Artigianali e Frutta Fresca" }
+  { url: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Cappuccino e Brioche Artigianali" },
+  { url: "https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Pasticceria Fresca del Mattino" },
+  { url: "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=1000&q=85", isReal: false, isFood: true, sourceLabel: "? Foto di Ispirazione: Buffet Dolci e Frutta Fresca" }
 ];
 
 const REAL_SCENIC_FALLBACKS: PhotoItem[] = [
-  { url: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Foto Reale della Destinazione" },
-  { url: "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Vista Panoramica Reale del Territorio" },
-  { url: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1000&q=85", isReal: true, isFood: false, sourceLabel: "?? Borghi e Natura della Zona" }
+  { url: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1000&q=85", isReal: false, isFood: false, sourceLabel: "? Foto di Ispirazione: Scorcio Panoramico della Destinazione" },
+  { url: "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=1000&q=85", isReal: false, isFood: false, sourceLabel: "? Foto di Ispirazione: Paesaggio e Territorio" },
+  { url: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1000&q=85", isReal: false, isFood: false, sourceLabel: "? Foto di Ispirazione: Borghi e Natura della Zona" }
 ];
 
 interface LocationPhotoCarouselProps {
@@ -78,13 +78,13 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
   const defaultPhotoList = useMemo(() => {
     const list: PhotoItem[] = [];
 
-    // If Gemini AI Google Grounding provided a direct verified photoUrl, place it first!
+    // If Gemini AI Google Grounding provided a direct verified photoUrl, place it first with REAL badge!
     if (photoUrl && photoUrl.startsWith('http')) {
       list.push({
         url: photoUrl,
         isReal: true,
         isFood: isFoodVenue,
-        sourceLabel: isFoodVenue ? `?? Foto Reale Verified: ${targetSearch}` : `?? Foto Reale Verified: ${targetSearch}`
+        sourceLabel: `?? Foto Reale Certificata: ${targetSearch}`
       });
     }
 
@@ -121,27 +121,38 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
   useEffect(() => {
     let isMounted = true;
 
-    const fetchRealCascadePhotos = async () => {
+    // Helper: Verify if the returned Wikipedia/Commons article actually matches the specific venue name
+    const isStrictRealEntityMatch = (target: string, articleTitle: string): boolean => {
+      const artLower = articleTitle.toLowerCase();
+      const targetWords = target.toLowerCase()
+        .replace(/[^a-zA-Z0-9À-ɏs]/gu, '')
+        .split(/\s+/)
+        .filter(w => w.length > 3 && !['visita', 'guidata', 'passeggiata', 'sosta', 'pranzo', 'cena', 'parco', 'museo', 'castello', 'della', 'delle', 'degli', 'nella', 'presso'].includes(w));
+      
+      if (targetWords.length === 0) return false;
+      // Must match at least one significant unique venue keyword (e.g. Borghese, Scaligero, Explora, Sigurt�, Sirmione)
+      return targetWords.some(w => artLower.includes(w));
+    };
+
+    const fetchStrictRealPhotos = async () => {
       const realItems: PhotoItem[] = [];
 
-      // If AI photoUrl exists, include it
+      // If AI Google Grounding photoUrl exists, include it as strictly verified real photo
       if (photoUrl && photoUrl.startsWith('http')) {
         realItems.push({
           url: photoUrl,
           isReal: true,
           isFood: isFoodVenue,
-          sourceLabel: isFoodVenue ? `?? Foto Reale Verified: ${targetSearch}` : `?? Foto Reale Verified: ${targetSearch}`
+          sourceLabel: `?? Foto Reale Certificata: ${targetSearch}`
         });
       }
 
-      // Step 1: Query Wikimedia Commons Files API (Over 105 Million Real Photos)
+      // Step 1: Query Italian Wikipedia API with Strict Title Match Verification
       try {
-        const queryTerm = baseCity && !targetSearch.toLowerCase().includes(baseCity.toLowerCase()) ? `${targetSearch} ${baseCity}` : targetSearch;
-        const commonsUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(queryTerm)}&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&iiurlwidth=1200&format=json&origin=*`;
-        
+        const itUrl = `https://it.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(targetSearch)}&gsrlimit=5&prop=pageimages|info&piprop=thumbnail&pithumbsize=1000&format=json&origin=*`;
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 3500);
-        const res = await fetch(commonsUrl, { signal: controller.signal });
+        const res = await fetch(itUrl, { signal: controller.signal });
         clearTimeout(timer);
 
         if (res.ok) {
@@ -149,17 +160,20 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
           const pages = data.query?.pages;
           if (pages) {
             Object.values(pages).forEach((p: any) => {
-              const u = p.imageinfo?.[0]?.thumburl || p.imageinfo?.[0]?.url;
-              if (u) {
-                const lower = u.toLowerCase();
+              const wikiImg = p?.thumbnail?.source;
+              const pageTitle = p?.title || '';
+              
+              // STRICT ENTITY VERIFICATION: Discard unrelated full-text matches (e.g. Lamborghini, Pavia, unrelated actors)
+              if (wikiImg && isStrictRealEntityMatch(targetSearch, pageTitle)) {
+                const lower = wikiImg.toLowerCase();
                 const isIrrelevant = lower.includes('map') || lower.includes('mappa') || lower.includes('flag') || lower.includes('stemm') || lower.includes('emblem') || lower.includes('chart') || lower.includes('logo') || lower.includes('metro') || lower.includes('actor') || lower.includes('pdf') || lower.endsWith('.svg');
 
-                if (!isIrrelevant && !realItems.some(item => item.url === u)) {
+                if (!isIrrelevant && !realItems.some(item => item.url === wikiImg)) {
                   realItems.push({
-                    url: u,
+                    url: wikiImg,
                     isReal: true,
                     isFood: isFoodVenue,
-                    sourceLabel: isFoodVenue ? `?? Cucina Reale: ${targetSearch}` : `?? Foto Reale: ${targetSearch}`
+                    sourceLabel: `?? Foto Reale Certificata: ${pageTitle}`
                   });
                 }
               }
@@ -168,13 +182,13 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
         }
       } catch (e) {}
 
-      // Step 2: Fallback Query to Wikipedia Pageimages API
+      // Step 2: Query Wikimedia Commons Files API with Strict Match Verification
       if (realItems.length < 3) {
         try {
-          const itUrl = `https://it.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(targetSearch)}&gsrlimit=4&prop=pageimages&piprop=thumbnail&pithumbsize=1000&format=json&origin=*`;
+          const commonsUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(targetSearch)}&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&iiurlwidth=1200&format=json&origin=*`;
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), 3000);
-          const res = await fetch(itUrl, { signal: controller.signal });
+          const res = await fetch(commonsUrl, { signal: controller.signal });
           clearTimeout(timer);
 
           if (res.ok) {
@@ -182,17 +196,19 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             const pages = data.query?.pages;
             if (pages) {
               Object.values(pages).forEach((p: any) => {
-                const wikiImg = p?.thumbnail?.source;
-                if (wikiImg) {
-                  const lower = wikiImg.toLowerCase();
+                const u = p.imageinfo?.[0]?.thumburl || p.imageinfo?.[0]?.url;
+                const fileTitle = p?.title || '';
+                
+                if (u && isStrictRealEntityMatch(targetSearch, fileTitle)) {
+                  const lower = u.toLowerCase();
                   const isIrrelevant = lower.includes('map') || lower.includes('mappa') || lower.includes('flag') || lower.includes('stemm') || lower.includes('emblem') || lower.includes('chart') || lower.includes('logo') || lower.includes('metro') || lower.includes('actor') || lower.includes('pdf') || lower.endsWith('.svg');
 
-                  if (!isIrrelevant && !realItems.some(item => item.url === wikiImg)) {
+                  if (!isIrrelevant && !realItems.some(item => item.url === u)) {
                     realItems.push({
-                      url: wikiImg,
+                      url: u,
                       isReal: true,
                       isFood: isFoodVenue,
-                      sourceLabel: isFoodVenue ? `?? Cucina Reale: ${p.title || targetSearch}` : `?? Foto Reale: ${p.title || targetSearch}`
+                      sourceLabel: `?? Foto Reale Certificata: ${targetSearch}`
                     });
                   }
                 }
@@ -202,14 +218,20 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
         } catch (e) {}
       }
 
-      if (realItems.length > 0 && isMounted) {
-        const fullCarousel = [...realItems, ...defaultPhotoList.filter(s => !realItems.some(r => r.url === s.url))].slice(0, 5);
-        setPhotoList(fullCarousel);
+      // If strict real photos were verified, present them in the carousel
+      if (isMounted) {
+        if (realItems.length > 0) {
+          const fullCarousel = [...realItems, ...defaultPhotoList.filter(s => !realItems.some(r => r.url === s.url))].slice(0, 5);
+          setPhotoList(fullCarousel);
+        } else {
+          // If no direct encyclopedia article exists, present the curated inspiration collection with honest badge
+          setPhotoList(defaultPhotoList);
+        }
         setCurrentIndex(0);
       }
     };
 
-    fetchRealCascadePhotos();
+    fetchStrictRealPhotos();
     return () => { isMounted = false; };
   }, [targetSearch, baseCity, isFoodVenue, defaultPhotoList, photoUrl]);
 
@@ -265,22 +287,22 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
             </button>
           </div>
 
-          {/* EXPLICIT TRANSPARENT BADGES DIRECTLY LABELED */}
+          {/* 100% HONEST, TRANSPARENT BADGES */}
           <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-            {currentPhoto.isFood ? (
-              <div className="px-3 py-1.5 bg-amber-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-amber-400/40 animate-fade-in">
-                <Utensils className="w-3.5 h-3.5 text-amber-200" />
-                <span>Specialit� & Ristorante ({currentIndex + 1}/{photoList.length})</span>
-              </div>
-            ) : currentPhoto.isReal ? (
-              <div className="px-3 py-1.5 bg-emerald-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-emerald-400/30 animate-fade-in">
+            {currentPhoto.isReal ? (
+              <div className="px-3 py-1.5 bg-emerald-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-emerald-400/40 animate-fade-in">
                 <Camera className="w-3.5 h-3.5 text-amber-300" />
-                <span>Foto Reale del Luogo ({currentIndex + 1}/{photoList.length})</span>
+                <span>Foto Reale Certificata ({currentIndex + 1}/{photoList.length})</span>
+              </div>
+            ) : currentPhoto.isFood ? (
+              <div className="px-3 py-1.5 bg-amber-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-amber-400/40 animate-fade-in">
+                <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                <span>Foto di Ispirazione Gastronomica ({currentIndex + 1}/{photoList.length})</span>
               </div>
             ) : (
-              <div className="px-3 py-1.5 bg-indigo-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-indigo-400/30 animate-fade-in">
-                <Camera className="w-3.5 h-3.5 text-amber-300" />
-                <span>Scorcio Reale della Zona ({currentIndex + 1}/{photoList.length})</span>
+              <div className="px-3 py-1.5 bg-indigo-600/95 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-indigo-400/40 animate-fade-in">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
+                <span>Foto di Ispirazione Territorio ({currentIndex + 1}/{photoList.length})</span>
               </div>
             )}
           </div>
@@ -306,12 +328,12 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
                 key={idx}
                 onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
                 className={`relative w-12 h-10 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-300 ${
-                  idx === currentIndex ? (p.isFood ? 'border-amber-500 scale-105 opacity-100 ring-2 ring-amber-300' : 'border-emerald-500 scale-105 opacity-100 ring-2 ring-emerald-300') : 'border-transparent opacity-50 hover:opacity-100'
+                  idx === currentIndex ? (p.isReal ? 'border-emerald-500 scale-105 opacity-100 ring-2 ring-emerald-300' : 'border-amber-500 scale-105 opacity-100 ring-2 ring-amber-300') : 'border-transparent opacity-50 hover:opacity-100'
                 }`}
               >
                 <img src={p.url} className="w-full h-full object-cover" />
-                <div className="absolute top-0.5 right-0.5 bg-emerald-500 text-white text-[8px] px-1 rounded-full font-black">
-                  ?
+                <div className={`absolute top-0.5 right-0.5 text-white text-[8px] px-1 rounded-full font-black ${p.isReal ? 'bg-emerald-500' : 'bg-amber-500'}`}>
+                  {p.isReal ? '?' : '?'}
                 </div>
               </button>
             ))}
@@ -330,8 +352,8 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
         >
           <div className="w-full flex justify-between items-center max-w-5xl">
             <div className="flex items-center gap-3">
-              <span className="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg">
-                <Camera className="w-4 h-4 text-amber-300" /> {currentPhoto.sourceLabel}
+              <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg ${currentPhoto.isReal ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'}`}>
+                {currentPhoto.isReal ? <Camera className="w-4 h-4 text-amber-300" /> : <Sparkles className="w-4 h-4 text-amber-200" />} {currentPhoto.sourceLabel}
               </span>
             </div>
             <button
