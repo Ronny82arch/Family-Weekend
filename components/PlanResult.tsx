@@ -505,7 +505,7 @@ const SmartImage: React.FC<{ title: string; className?: string; t?: any }> = ({ 
     );
 };
 
-export const ActivityCard: React.FC<{ title: string; content: string; visualLine?: string; onNavigate?: (locationName: string) => void; familyBadge?: React.ReactNode; t: any; googleMapsUrl?: string | null }> = ({ title, content, visualLine, onNavigate, familyBadge, t, googleMapsUrl }) => {
+export const ActivityCard: React.FC<{ title: string; content: string; visualLine?: string; onNavigate?: (locationName: string) => void; familyBadge?: React.ReactNode; t: any; googleMapsUrl?: string | null; imageQuery?: string; photoUrl?: string; baseCity?: string }> = ({ title, content, visualLine, onNavigate, familyBadge, t, googleMapsUrl, imageQuery, photoUrl, baseCity }) => {
     const handleNavClick = (e: React.MouseEvent, locationName: string, url: string) => {
         if (onNavigate) { e.preventDefault(); onNavigate(locationName); window.open(url, '_blank'); }
     };
@@ -582,7 +582,7 @@ export const ActivityCard: React.FC<{ title: string; content: string; visualLine
         <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-100 mb-10 transition-all hover:shadow-md group">
             <div className="flex flex-col md:flex-row h-full">
                 <div className="md:w-1/3 h-64 md:h-auto relative overflow-hidden bg-slate-100 border-b md:border-b-0 md:border-r border-slate-100 group">
-                     <LocationPhotoCarousel title={displayTitle} className="w-full h-full min-h-[240px]" />
+                     <LocationPhotoCarousel title={displayTitle} imageQuery={imageQuery} photoUrl={photoUrl} baseCity={baseCity} className="w-full h-full min-h-[240px]" />
                 </div>
                 <div className="p-8 md:w-2/3 flex flex-col justify-center">
                     <div className="flex justify-between items-start mb-3">

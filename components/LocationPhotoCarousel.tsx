@@ -65,7 +65,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
   }, [title]);
 
   const targetSearch = useMemo(() => {
-    return imageQuery || title
+    return (imageQuery || title)
       .replace(/###/g, '')
       .replace(/\*\*/g, '')
       .replace(/^(Mattina|Pranzo|Pomeriggio|Cena|Sera)[:\s-]*/i, '')
@@ -121,20 +121,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
   useEffect(() => {
     let isMounted = true;
 
-    // Helper: Verify if the returned Wikipedia/Commons article actually matches the specific venue name
-    const isStrictRealEntityMatch = (target: string, articleTitle: string): boolean => {
-      const artLower = articleTitle.toLowerCase();
-      const targetWords = target.toLowerCase()
-        .replace(/[^a-zA-Z0-9À-ɏs]/gu, '')
-        .split(/\s+/)
-        .filter(w => w.length > 3 && !['visita', 'guidata', 'passeggiata', 'sosta', 'pranzo', 'cena', 'parco', 'museo', 'castello', 'della', 'delle', 'degli', 'nella', 'presso'].includes(w));
-      
-      if (targetWords.length === 0) return false;
-      // Must match at least one significant unique venue keyword (e.g. Borghese, Scaligero, Explora, Sigurt�, Sirmione)
-      return targetWords.some(w => artLower.includes(w));
-    };
-
-    const fetchStrictRealPhotos = async () => {
+    const fetchExactVerifiedPhotos = async () => {
       const realItems: PhotoItem[] = [];
 
       // If AI Google Grounding photoUrl exists, include it as strictly verified real photo
@@ -147,76 +134,51 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
         });
       }
 
-      // Step 1: Query Italian Wikipedia API with Strict Title Match Verification
+      // Step 1: OpenSearch Title Lookup on Italian Wikipedia (ONLY MATCHES ARTICLE TITLES, NEVER FULL-TEXT NOISE!)
       try {
-        const itUrl = `https://it.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(targetSearch)}&gsrlimit=5&prop=pageimages|info&piprop=thumbnail&pithumbsize=1000&format=json&origin=*`;
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3500);
-        const res = await fetch(itUrl, { signal: controller.signal });
-        clearTimeout(timer);
+        const searchTerms = [targetSearch];
+        if (targetSearch.includes(' a ')) searchTerms.push(targetSearch.split(' a ')[0].trim());
+        if (targetSearch.includes(',')) searchTerms.push(targetSearch.split(',')[0].trim());
 
-        if (res.ok) {
-          const data = await res.json();
-          const pages = data.query?.pages;
-          if (pages) {
-            Object.values(pages).forEach((p: any) => {
-              const wikiImg = p?.thumbnail?.source;
-              const pageTitle = p?.title || '';
-              
-              // STRICT ENTITY VERIFICATION: Discard unrelated full-text matches (e.g. Lamborghini, Pavia, unrelated actors)
-              if (wikiImg && isStrictRealEntityMatch(targetSearch, pageTitle)) {
-                const lower = wikiImg.toLowerCase();
-                const isIrrelevant = lower.includes('map') || lower.includes('mappa') || lower.includes('flag') || lower.includes('stemm') || lower.includes('emblem') || lower.includes('chart') || lower.includes('logo') || lower.includes('metro') || lower.includes('actor') || lower.includes('pdf') || lower.endsWith('.svg');
-
-                if (!isIrrelevant && !realItems.some(item => item.url === wikiImg)) {
-                  realItems.push({
-                    url: wikiImg,
-                    isReal: true,
-                    isFood: isFoodVenue,
-                    sourceLabel: `?? Foto Reale Certificata: ${pageTitle}`
-                  });
-                }
-              }
-            });
-          }
-        }
-      } catch (e) {}
-
-      // Step 2: Query Wikimedia Commons Files API with Strict Match Verification
-      if (realItems.length < 3) {
-        try {
-          const commonsUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(targetSearch)}&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&iiurlwidth=1200&format=json&origin=*`;
+        for (const term of searchTerms) {
+          const openSearchUrl = `https://it.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(term)}&limit=3&format=json&origin=*`;
           const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 3000);
-          const res = await fetch(commonsUrl, { signal: controller.signal });
+          const timer = setTimeout(() => controller.abort(), 3500);
+          const res = await fetch(openSearchUrl, { signal: controller.signal });
           clearTimeout(timer);
 
           if (res.ok) {
             const data = await res.json();
-            const pages = data.query?.pages;
-            if (pages) {
-              Object.values(pages).forEach((p: any) => {
-                const u = p.imageinfo?.[0]?.thumburl || p.imageinfo?.[0]?.url;
-                const fileTitle = p?.title || '';
-                
-                if (u && isStrictRealEntityMatch(targetSearch, fileTitle)) {
-                  const lower = u.toLowerCase();
-                  const isIrrelevant = lower.includes('map') || lower.includes('mappa') || lower.includes('flag') || lower.includes('stemm') || lower.includes('emblem') || lower.includes('chart') || lower.includes('logo') || lower.includes('metro') || lower.includes('actor') || lower.includes('pdf') || lower.endsWith('.svg');
+            const matchedTitles: string[] = data[1] || [];
 
-                  if (!isIrrelevant && !realItems.some(item => item.url === u)) {
+            for (const articleTitle of matchedTitles) {
+              // Discard films, disambiguations or generic words
+              if (articleTitle.toLowerCase().includes('(film)') || articleTitle.toLowerCase().includes('(disambigua)')) continue;
+
+              // Fetch exact page image for verified article
+              const pageImgUrl = `https://it.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(articleTitle)}&prop=pageimages&piprop=thumbnail&pithumbsize=1200&format=json&origin=*`;
+              const imgRes = await fetch(pageImgUrl);
+              if (imgRes.ok) {
+                const imgData = await imgRes.json();
+                const pages = imgData.query?.pages;
+                if (pages) {
+                  const page = Object.values(pages)[0] as any;
+                  const thumb = page?.thumbnail?.source;
+                  if (thumb && !realItems.some(i => i.url === thumb)) {
                     realItems.push({
-                      url: u,
+                      url: thumb,
                       isReal: true,
                       isFood: isFoodVenue,
-                      sourceLabel: `?? Foto Reale Certificata: ${targetSearch}`
+                      sourceLabel: `?? Foto Reale Certificata: ${articleTitle}`
                     });
                   }
                 }
-              });
+              }
             }
           }
-        } catch (e) {}
-      }
+          if (realItems.length > 0) break;
+        }
+      } catch (e) {}
 
       // If strict real photos were verified, present them in the carousel
       if (isMounted) {
@@ -224,14 +186,13 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({ ti
           const fullCarousel = [...realItems, ...defaultPhotoList.filter(s => !realItems.some(r => r.url === s.url))].slice(0, 5);
           setPhotoList(fullCarousel);
         } else {
-          // If no direct encyclopedia article exists, present the curated inspiration collection with honest badge
           setPhotoList(defaultPhotoList);
         }
         setCurrentIndex(0);
       }
     };
 
-    fetchStrictRealPhotos();
+    fetchExactVerifiedPhotos();
     return () => { isMounted = false; };
   }, [targetSearch, baseCity, isFoodVenue, defaultPhotoList, photoUrl]);
 
