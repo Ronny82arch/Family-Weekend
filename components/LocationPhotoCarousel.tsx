@@ -244,7 +244,7 @@ export const LocationPhotoCarousel: React.FC<LocationPhotoCarouselProps> = ({
               <span className="text-[9px] font-black text-amber-300 mr-1.5 uppercase tracking-wider">Foto Ricordo</span>
               {familyAvatars.slice(0, 3).map((url, i) => (
                 <div key={i} className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-slate-800 shadow">
-                  <img src={url} className="w-full h-full object-cover" />
+                  <img src={url} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 </div>
               ))}
             </div>
